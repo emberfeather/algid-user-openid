@@ -13,7 +13,8 @@
 	},
 	"key": "@project.key@",
 	"prerequisites": {
-		"algid": "@prerequisites.algid@"
+		"algid": "@prerequisites.algid@",
+		"user": "@prerequisites.user@"
 	},
 	"sessionSingletons": {
 	},
