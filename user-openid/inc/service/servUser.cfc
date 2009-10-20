@@ -27,8 +27,11 @@
 	<cffunction name="readUser" access="public" returntype="component" output="false">
 		<cfargument name="userID" type="numeric" required="true" />
 		
+		<cfset var i18n = '' />
 		<cfset var results = '' />
 		<cfset var user = '' />
+		
+		<cfset i18n = variables.transport.applicationSingletons.getI18N() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
@@ -36,7 +39,7 @@
 			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userID#" />
 		</cfquery>
 		
-		<cfset user = application.factories.transient.getModUserForUser(variables.i18n, variables.locale) />
+		<cfset user = application.factories.transient.getModUserForUser(i18n, variables.transport.locale) />
 		
 		<cfset user.deserialize(results) />
 		

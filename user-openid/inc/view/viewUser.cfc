@@ -20,15 +20,24 @@
 	</cffunction>
 	
 	<cffunction name="list" access="public" returntype="string" output="false">
-		<cfargument name="items" type="query" required="true" />
-		<cfargument name="filter" type="struct" required="true" />
+		<cfargument name="data" type="any" required="true" />
 		<cfargument name="options" type="struct" default="#{}#" />
 		
-		<cfset var html = '' />
+		<cfset var datagrid = '' />
+		<cfset var i18n = '' />
 		
-		<!--- TODO Set default options for the datagrid --->
-		<cfset html = super.list( argumentCollection = arguments ) />
+		<cfset i18n = variables.transport.applicationSingletons.getI18N() />
+		<cfset datagrid = variables.transport.applicationTransients.getDatagrid(i18n, variables.transport.locale) />
 		
-		<cfreturn html />
+		<!--- TODO Remove --->
+		<cfdump var="#arguments.data#" />
+		<cfabort />
+		
+		<cfset datagrid.addColumn({
+				key = 'permission',
+				label = 'Permission'
+			}) />
+		
+		<cfreturn datagrid.toHTML( arguments.data, arguments.options ) />
 	</cffunction>
 </cfcomponent>

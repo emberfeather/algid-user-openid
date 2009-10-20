@@ -1,4 +1,4 @@
-<cfset servUser = application.factories.transient.getServUserForUser(application.app.getDSUpdate(), i18n, SESSION.locale) />
+<cfset servUser = application.factories.transient.getServUserForUser(application.app.getDSUpdate(), transport) />
 
 <!--- Create an empty user object if none exists --->
 <cfif NOT SESSION.managers.singleton.hasUser()>
