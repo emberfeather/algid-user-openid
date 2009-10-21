@@ -3,13 +3,16 @@
 		<cfargument name="request" type="struct" default="#{}#" />
 		
 		<cfset var html = '' />
+		<cfset var theURL = '' />
 		
 		<cfparam name="arguments.request.openID" default="" />
+		
+		<cfset theURL = variables.transport.requestSingletons.getUrl() />
 		
 		<!--- TODO use the form cfc --->
 		<cfsavecontent variable="html">
 			<cfoutput>
-				<form action="#variables.theURL.get()#" method="post">
+				<form action="#theURL.get()#" method="post">
 					<input id="openid_identifier" type="text" name="openID" value="#arguments.request.openID#">
 					<input type="submit" value="Login" />
 				</form>

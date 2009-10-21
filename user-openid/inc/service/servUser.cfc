@@ -34,6 +34,16 @@
 		<cfset eventLog.logEvent('user-openid', 'createUser', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID()) />
 	</cffunction>
 	
+	<cffunction name="discoverUser" access="public" returntype="string" output="false">
+		<cfargument name="request" type="struct" required="true" />
+		
+		<cfset var result = '' />
+		
+		<!--- TODO Discover the final identity for the openID provider --->
+		
+		<cfreturn result />
+	</cffunction>
+	
 	<cffunction name="readUser" access="public" returntype="component" output="false">
 		<cfargument name="userID" type="numeric" required="true" />
 		
@@ -74,5 +84,26 @@
 		</cfquery>
 		
 		<cfreturn results />
+	</cffunction>
+	
+	<cffunction name="verifyUser" access="public" returntype="void" output="false">
+		<cfargument name="user" type="component" required="true" />
+		
+		<cfset var eventLog = '' />
+		
+		<!--- Get the event log from the transport --->
+		<cfset eventLog = variables.transport.applicationSingletons.getEventLog() />
+		
+		<!--- TODO Check Permissions --->
+		<cfif 1 EQ 1>
+			<!--- TODO Update the user object with the information from the provider and the database --->
+			<cfset arguments.user.setUserID(1) />
+			
+			<!--- Log the successful login event --->
+			<cfset eventLog.logEvent('user-openid', 'verifiedUser', 'Verified the OpenID login for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
+		<cfelse>
+			<!--- Log the failed login event --->
+			<cfset eventLog.logEvent('user-openid', 'failedUser', 'The OpenID login failed for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
+		</cfif>
 	</cffunction>
 </cfcomponent>
