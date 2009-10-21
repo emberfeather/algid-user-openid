@@ -15,4 +15,8 @@
 		
 		<cfreturn this />
 	</cffunction>
+	
+	<cffunction name="getUsername" access="public" returntype="string" output="false">
+		<cfreturn this.getIdentity() />
+	</cffunction>
 </cfcomponent>

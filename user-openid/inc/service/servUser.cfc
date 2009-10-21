@@ -1,8 +1,15 @@
 <cfcomponent extends="plugins.user.inc.service.servUser" output="false">
 	<cffunction name="createUser" access="public" returntype="void" output="false">
+		<cfargument name="currUser" type="component" required="true" />
 		<cfargument name="user" type="component" required="true" />
 		
+		<cfset var eventLog = '' />
 		<cfset var results = '' />
+		
+		<!--- Get the event log from the transport --->
+		<cfset eventLog = variables.transport.applicationSingletons.getEventLog() />
+		
+		<!--- TODO Check Permissions --->
 		
 		<cfquery datasource="#variables.datasource.name#" result="results">
 			INSERT INTO "#variables.datasource.prefix#user"."user"
@@ -22,6 +29,9 @@
 		</cfquery>
 		
 		<cfset arguments.user.setUserID( results.userID ) />
+		
+		<!--- Log the create event --->
+		<cfset eventLog.logEvent('user-openid', 'createUser', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID()) />
 	</cffunction>
 	
 	<cffunction name="readUser" access="public" returntype="component" output="false">
