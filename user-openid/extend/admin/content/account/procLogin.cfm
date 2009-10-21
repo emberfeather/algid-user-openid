@@ -1,10 +1,5 @@
 <cfset servUser = application.factories.transient.getServUserForUser(application.app.getDSUpdate(), transport) />
 
-<!--- Create an empty user object if none exists --->
-<cfif NOT SESSION.managers.singleton.hasUser()>
-	<cfset SESSION.managers.singleton.setUser( application.factories.transient.getModUserForUser(i18n, SESSION.locale) ) />
-</cfif>
-
 <!--- Check for form submission --->
 <cfif CGI.REQUEST_METHOD EQ 'POST'>
 	<!--- Retrieve the user object --->
