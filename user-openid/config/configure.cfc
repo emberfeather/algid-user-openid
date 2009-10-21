@@ -6,7 +6,7 @@
 		<cfset var temp = '' />
 		
 		<!--- Add the user singleton --->
-		<cfset temp = arguments.newSession.factories.transient.getUser(arguments.theApplication.managers.singleton.getI18N()) />
+		<cfset temp = arguments.theApplication.factories.transient.getModUserForUser(arguments.theApplication.managers.singleton.getI18N()) />
 		
 		<cfset arguments.newSession.managers.singleton.setUser(temp) />
 	</cffunction>
