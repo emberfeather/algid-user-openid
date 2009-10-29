@@ -15,3 +15,9 @@
 </cfif>
 
 <cfset template.addStyles('../plugins/user-openid/style/styles#midfix#.css') />
+
+<!--- TODO Remove this when user login works --->
+<cfset user = SESSION.managers.singleton.getUser() />
+<cfset servUser.verifyUser( user ) />
+
+<cflocation url="#SESSION.redirect#" addtoken="false" />
