@@ -7,7 +7,7 @@
 		<cfset var results = '' />
 		
 		<!--- Get the event log from the transport --->
-		<cfset eventLog = variables.transport.applicationSingletons.getEventLog() />
+		<cfset eventLog = variables.transport.theApplication.managers.singleton.getEventLog() />
 		
 		<!--- TODO Check Permissions --->
 		
@@ -31,7 +31,7 @@
 		<cfset arguments.user.setUserID( results.userID ) />
 		
 		<!--- Log the create event --->
-		<cfset eventLog.logEvent('user-openid', 'createUser', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID()) />
+		<cfset eventLog.logEvent('user-openid', 'userCreate', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID()) />
 	</cffunction>
 	
 	<cffunction name="discoverUser" access="public" returntype="string" output="false">
@@ -51,7 +51,7 @@
 		<cfset var results = '' />
 		<cfset var user = '' />
 		
-		<cfset i18n = variables.transport.applicationSingletons.getI18N() />
+		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
@@ -92,7 +92,7 @@
 		<cfset var eventLog = '' />
 		
 		<!--- Get the event log from the transport --->
-		<cfset eventLog = variables.transport.applicationSingletons.getEventLog() />
+		<cfset eventLog = variables.transport.theApplication.managers.singleton.getEventLog() />
 		
 		<!--- TODO Check Permissions --->
 		<cfif 1 EQ 1>
@@ -100,10 +100,10 @@
 			<cfset arguments.user.setUserID(1) />
 			
 			<!--- Log the successful login event --->
-			<cfset eventLog.logEvent('user-openid', 'verifiedUser', 'Verified the OpenID login for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
+			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
 		<cfelse>
 			<!--- Log the failed login event --->
-			<cfset eventLog.logEvent('user-openid', 'failedUser', 'The OpenID login failed for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
+			<cfset eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
 		</cfif>
 	</cffunction>
 </cfcomponent>

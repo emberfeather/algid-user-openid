@@ -7,7 +7,7 @@
 		
 		<cfparam name="arguments.request.openID" default="" />
 		
-		<cfset theURL = variables.transport.requestSingletons.getUrl() />
+		<cfset theURL = variables.transport.theRequest.managers.singleton.getUrl() />
 		
 		<!--- TODO use the form cfc --->
 		<cfsavecontent variable="html">
@@ -29,8 +29,8 @@
 		<cfset var datagrid = '' />
 		<cfset var i18n = '' />
 		
-		<cfset i18n = variables.transport.applicationSingletons.getI18N() />
-		<cfset datagrid = variables.transport.applicationTransients.getDatagrid(i18n, variables.transport.locale) />
+		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
+		<cfset datagrid = variables.transport.theApplication.factories.transient.getDatagrid(i18n, variables.transport.locale) />
 		
 		<!--- TODO Remove --->
 		<cfdump var="#arguments.data#" />
