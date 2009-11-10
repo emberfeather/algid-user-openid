@@ -6,9 +6,9 @@
 		<cfset super.init(arguments.i18n, arguments.locale) />
 		
 		<!--- Identity --->
-		<cfset addAttribute(argumentCollection = {
+		<cfset addAttribute(
 				attribute = 'identity'
-			}) />
+			) />
 		
 		<!--- Set the bundle information for translation --->
 		<cfset setI18NBundle('plugins/user-openid/i18n/inc/model', 'modUser') />
