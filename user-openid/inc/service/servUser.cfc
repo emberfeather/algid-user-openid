@@ -31,7 +31,7 @@
 		<cfset arguments.user.setUserID( results.userID ) />
 		
 		<!--- Log the create event --->
-		<cfset eventLog.logEvent('user-openid', 'userCreate', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID()) />
+		<cfset eventLog.logEvent('user-openid', 'userCreate', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID(), arguments.user.getUserID()) />
 	</cffunction>
 	
 	<cffunction name="discoverUser" access="public" returntype="string" output="false">
@@ -100,10 +100,10 @@
 			<cfset arguments.user.setUserID(1) />
 			
 			<!--- Log the successful login event --->
-			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
+			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
 		<cfelse>
 			<!--- Log the failed login event --->
-			<cfset eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID()) />
+			<cfset eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
 		</cfif>
 	</cffunction>
 </cfcomponent>
