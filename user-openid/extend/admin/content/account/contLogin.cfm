@@ -1,3 +1,3 @@
-<cfset viewUser = application.factories.transient.getViewUserForUser( transport ) />
+<cfset viewUser = transport.theApplication.factories.transient.getViewUserForUser( transport ) />
 
 <cfoutput>#viewUser.login( FORM )#</cfoutput>

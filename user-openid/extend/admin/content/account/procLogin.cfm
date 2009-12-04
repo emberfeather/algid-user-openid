@@ -1,4 +1,4 @@
-<cfset servUser = application.factories.transient.getServUserForUser(application.app.getDSUpdate(), transport) />
+<cfset servUser = transport.theApplication.factories.transient.getServUserForUser(application.app.getDSUpdate(), transport) />
 
 <!--- Check for form submission --->
 <cfif CGI.REQUEST_METHOD EQ 'POST'>
