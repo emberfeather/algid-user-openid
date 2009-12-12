@@ -1,12 +1,12 @@
 <cfset servUser = transport.theApplication.factories.transient.getServUserForUser(application.app.getDSUpdate(), transport) />
 
 <!--- Check for form submission --->
-<cfif CGI.ReqUEST_METHOD eq 'POST'>
+<cfif cgi.request_method eq 'POST'>
 	<!--- Retrieve the user object --->
 	<cfset user = session.managers.singleton.getUser() />
 	
 	<!--- TODO Discover openID provider --->
-	<cfset servUser.discoverUser( ForM ) />
+	<cfset servUser.discoverUser( form ) />
 	
 	<!--- TODO Verify valid login --->
 	<cfset servUser.verifyUser( user ) />
