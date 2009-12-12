@@ -59,7 +59,7 @@
 			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userID#" />
 		</cfquery>
 		
-		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.locale) />
+		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.locale) />
 		
 		<cfset user.deserialize(results) />
 		
@@ -100,10 +100,10 @@
 			<cfset arguments.user.setUserID(1) />
 			
 			<!--- Log the successful login event --->
-			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
+			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ''' & arguments.user.getIdentity() & ''' on ' & variables.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
 		<cfelse>
 			<!--- Log the failed login event --->
-			<cfset eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ' & arguments.user.getIdentity() & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
+			<cfset eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ''' & arguments.user.getIdentity() & ''' on ' & variables.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
 		</cfif>
 	</cffunction>
 </cfcomponent>
