@@ -77,10 +77,10 @@
 			WHERE 1=1
 			
 			<cfif structKeyExists(arguments.filter, 'identifier')>
-				AND "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.user#" />
+				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.user#" />
 			</cfif>
 			
-			ORDER BY "identifier" ASC
+			orDER BY "identifier" ASC
 		</cfquery>
 		
 		<cfreturn results />
@@ -95,7 +95,7 @@
 		<cfset eventLog = variables.transport.theApplication.managers.singleton.getEventLog() />
 		
 		<!--- TODO Check Permissions --->
-		<cfif 1 EQ 1>
+		<cfif 1 eq 1>
 			<!--- TODO Update the user object with the information from the provider and the database --->
 			<cfset arguments.user.setUserID(1) />
 			
