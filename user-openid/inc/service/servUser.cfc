@@ -59,7 +59,7 @@
 			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userID#" />
 		</cfquery>
 		
-		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.locale) />
+		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.managers.singleton.getSession().getLocale()) />
 		
 		<cfset user.deserialize(results) />
 		
