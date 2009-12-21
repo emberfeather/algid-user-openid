@@ -80,7 +80,7 @@
 				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.user#" />
 			</cfif>
 			
-			orDER BY "identifier" ASC
+			ORDER BY "identifier" ASC
 		</cfquery>
 		
 		<cfreturn results />
