@@ -115,7 +115,7 @@
 						"userID",
 						"identifier"
 					) VALUES (
-						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid:uuid,
+						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
 						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
 					)
 				</cfquery>
