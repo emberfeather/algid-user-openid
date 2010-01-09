@@ -11,24 +11,19 @@
 		
 		<!--- TODO Check Permissions --->
 		
+		<!--- Create the new ID --->
+		<cfset arguments.user.setUserID( createUUID() ) />
+		
 		<cfquery datasource="#variables.datasource.name#" result="results">
 			INSERT INTO "#variables.datasource.prefix#user"."user"
 			(
+				"userID",
 				"identifier"
 			) VALUES (
+				<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
 				<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
 			)
 		</cfquery>
-		
-		<!--- Query the userID --->
-		<!--- TODO replace this with the new id from the insert results --->
-		<cfquery name="results" datasource="#variables.datasource.name#">
-			SELECT "userID"
-			FROM "#variables.datasource.prefix#user"."user"
-			WHERE "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
-		</cfquery>
-		
-		<cfset arguments.user.setUserID( results.userID ) />
 		
 		<!--- Log the create event --->
 		<cfset eventLog.logEvent('user-openid', 'userCreate', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID(), arguments.user.getUserID()) />
@@ -45,9 +40,10 @@
 	</cffunction>
 	
 	<cffunction name="readUser" access="public" returntype="component" output="false">
-		<cfargument name="userID" type="numeric" required="true" />
+		<cfargument name="userID" type="string" required="true" />
 		
 		<cfset var i18n = '' />
+		<cfset var objectSerial = '' />
 		<cfset var results = '' />
 		<cfset var user = '' />
 		
@@ -56,12 +52,16 @@
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
 			FROM "#variables.datasource.prefix#user"."user"
-			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userID#" />
+			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userID#" />::uuid
 		</cfquery>
 		
 		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.managers.singleton.getSession().getLocale()) />
 		
-		<cfset user.deserialize(results) />
+		<cfif results.recordCount>
+			<cfset objectSerial = variables.transport.theApplication.managers.singleton.getObjectSerial() />
+			
+			<cfset objectSerial.deserialize(results, user) />
+		</cfif>
 		
 		<cfreturn user />
 	</cffunction>
@@ -97,7 +97,29 @@
 		<!--- TODO Check Permissions --->
 		<cfif 1 eq 1>
 			<!--- TODO Update the user object with the information from the provider and the database --->
-			<cfset arguments.user.setUserID(1) />
+			<cfquery name="results" datasource="#variables.datasource.name#">
+				SELECT "userID", "identifier"
+				FROM "#variables.datasource.prefix#user"."user"
+			</cfquery>
+			
+			<cfif results.recordCount>
+				<cfset arguments.user.setUserID(results.userID) />
+				<cfset arguments.user.setIdentifier(results.identifier) />
+			<cfelse>
+				<cfset arguments.user.setUserID( createUUID() ) />
+				<cfset arguments.user.setIdentifier('http://web.monkey.ef') />
+				
+				<cfquery name="results" datasource="#variables.datasource.name#">
+					INSERT INTO "#variables.datasource.prefix#user"."user"
+					(
+						"userID",
+						"identifier"
+					) VALUES (
+						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid:uuid,
+						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
+					)
+				</cfquery>
+			</cfif>
 			
 			<!--- Log the successful login event --->
 			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ''' & arguments.user.getIdentity() & ''' on ' & variables.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
