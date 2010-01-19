@@ -52,7 +52,7 @@
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
 			FROM "#variables.datasource.prefix#user"."user"
-			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userID#" />::uuid
+			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userID#" null="#arguments.userID eq ''#" />::uuid
 		</cfquery>
 		
 		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.managers.singleton.getSession().getLocale()) />
