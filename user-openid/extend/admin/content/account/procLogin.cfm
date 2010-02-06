@@ -14,6 +14,9 @@
 	<cflocation url="#transport.theSession.redirect#" addtoken="false" />
 </cfif>
 
+<!--- Include minified files for production --->
+<cfset midfix = (transport.theApplication.managers.singleton.getApplication().isProduction() ? '-min' : '') />
+
 <cfset template.addStyles('../plugins/user-openid/style/styles#midfix#.css') />
 
 <!--- TODO Remove this when user login works --->
