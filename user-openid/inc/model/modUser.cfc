@@ -17,6 +17,10 @@
 	</cffunction>
 	
 	<cffunction name="getUsername" access="public" returntype="string" output="false">
+		<cfif variables.instance.username neq ''>
+			<cfreturn variables.instance.username />
+		</cfif>
+		
 		<cfreturn this.getIdentity() />
 	</cffunction>
 </cfcomponent>
