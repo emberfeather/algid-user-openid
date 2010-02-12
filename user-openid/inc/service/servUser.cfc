@@ -90,6 +90,7 @@
 		<cfargument name="user" type="component" required="true" />
 		
 		<cfset var eventLog = '' />
+		<cfset var results = '' />
 		
 		<!--- Get the event log from the transport --->
 		<cfset eventLog = variables.transport.theApplication.managers.singleton.getEventLog() />
