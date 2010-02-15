@@ -1,31 +1,42 @@
 <?xml version="1.0"?>
 <project name="algid-user-openid" default="minify" basedir=".">
 	<!-- Include the property files -->
-	<property file="${basedir}/dist/settings/user.properties"/>
-	<property file="${basedir}/dist/settings/project.properties"/>
-	<property file="${basedir}/dist/settings/version.properties"/>
-	<property file="${basedir}/dist/settings/build.properties"/>
-	<property file="${basedir}/dist/settings/test.properties"/>
+	<property file="${basedir}/build/settings/user.properties"/>
+	<property file="${basedir}/build/settings/project.properties"/>
+	<property file="${basedir}/build/settings/version.properties"/>
+	<property file="${basedir}/build/settings/build.properties"/>
+	<property file="${basedir}/build/settings/test.properties"/>
 	
 	<target name="minify" depends="prepare" description="Minify the CSS and JS files">
 		<echo message="Starting: CSS and JS minification"/>
+
+		<!-- Create a single, concatenated JS file
+		<concat destfile="${build.script}jquery.${project.name}.js">
+			<fileset dir="${build.script}" includes="jquery.base.js" />
+		</concat> -->
 		
-		<!-- Use the jar to minify the css and js files -->
-		<apply executable="java" parallel="false" dest="${basedir}/${project.key}">
-			<fileset dir="${basedir}/${project.key}" includes="**/*.js" excludes="**/*-min.js" />
+		<!-- Create a single, concatenated CSS file
+		<concat destfile="${build.style}${project.name}.css">
+			<fileset dir="${build.style}" includes="base.css" />
+		</concat> -->
+		
+		<!-- Compress the JS files with Google Closure Compiler -->
+		<apply executable="java" parallel="false" dest="${basedir}/${project.name}">
+			<fileset dir="${basedir}${file.separator}${project.name}" includes="**/*.js" excludes="**/*-min.js" />
 			<arg line="-jar"/>
-			<arg path="${build.lib}/yuicompressor-2.4.2/yuicompressor.jar" />
-			<arg line="-v"/>
+			<arg path="${build.lib}${file.separator}${build.lib.jar.compiler}" />
+			<arg line="--js"/>
 			<srcfile/>
-			<arg line="-o"/>
+			<arg line="--js_output_file"/>
 			<mapper type="glob" from="*.js" to="*-min.js"/>
 			<targetfile/>
 		</apply>
 		
-		<apply executable="java" parallel="false" dest="${basedir}/${project.key}">
-			<fileset dir="${basedir}/${project.key}" includes="**/*.css" excludes="**/*-min.css" />
+		<!-- Compress the CSS files with Yahoo UI Compressor -->
+		<apply executable="java" parallel="false" dest="${basedir}/${project.name}">
+			<fileset dir="${basedir}${file.separator}${project.name}" includes="**/*.css" excludes="**/*-min.css" />
 			<arg line="-jar"/>
-			<arg path="${build.lib}/yuicompressor-2.4.2/yuicompressor.jar" />
+			<arg path="${build.lib}${file.separator}${build.lib.jar.compressor}" />
 			<arg line="-v"/>
 			<srcfile/>
 			<arg line="-o"/>
@@ -40,7 +51,16 @@
 		<echo message="Starting: Environment Preparation"/>
 		
 		<!-- Define log file -->
-		<record name="${build.logs.ant}"/>
+		<record name="${build.logs}${file.separator}${build.logs.ant}" />
+		
+		<!-- Make the distribution directory -->
+		<mkdir dir="${build.dist}" />
+		
+		<!-- Make the log directory -->
+		<mkdir dir="${build.logs}" />
+		
+		<!-- Make the unit test directory -->
+		<mkdir dir="${build.dist}/unit" />
 		
 		<!-- Create the time stamp -->
 		<tstamp>
@@ -50,98 +70,31 @@
 		<!-- Combine the version parts into full version identifier -->
 		<property name="project.version" value="${project.version.major}.${project.version.minor}.${project.version.build}"/>
 		
+		<!-- Set the script directory -->
+		<property name="build.script" value="${basedir}${file.separator}${project.name}${file.separator}script${file.separator}"/>
+		
+		<!-- Set the style directory -->
+		<property name="build.style" value="${basedir}${file.separator}${project.name}${file.separator}style${file.separator}"/>
+		
 		<echo message="Finished: Environment Preparation"/>
 	</target>
 	
-	<target name="prepareSVN" depends="prepare">
-		<echo message="Starting: SVN Preparation"/>
-		
-		<path id="svn.classpath">
-			<pathelement location="${build.lib}/svnant-1.3.0/svnant.jar" />
-			<pathelement location="${build.lib}/svnant-1.3.0/svnClientAdapter.jar"/>
-			<pathelement location="${build.lib}/svnant-1.3.0/svnjavahl.jar"/>
-			<pathelement location="${build.lib}/svnant-1.3.0/svnkit.jar"/>
-			<pathelement location="${build.lib}/svnant-1.3.0/ganymed.jar"/>
-		</path>
-		
-		<!-- Load ANT tasks -->
-		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="svn.classpath"/>
-		
-		<!-- Create the time stamp -->
-		<tstamp>
-			<format property="svn.log.startDate" pattern="yyyy-MM-dd" offset="-5" unit="year" />
-			<format property="svn.log.endDate" pattern="yyyy-MM-dd" offset="1" unit="day"/>
-		</tstamp>
-		
-		<!-- Get the SVN information -->
-		<input addproperty="svn.username" message="SVN Username" />
-		<input addproperty="svn.password" message="SVN Password" />
-		
-		<echo message="Finished: SVN Preparation"/>
-	</target>
-	
-	<target name="release" depends="prepareSVN,svnUpdate,minify,testVarScoper,testMXUnit" description="Tags a release and uploads a new version of the setup zip">
+	<target name="release" depends="prepare,minify,testVarScoper,testMXUnit,releaseTemplate" description="Tags a release">
 		<echo message="Starting: Release of version ${project.version}"/>
 		
-		<!-- Load ANT tasks -->
-		<taskdef classname="net.bluecow.googlecode.ant.GoogleCodeUploadTask" classpath="${build.lib}/ant-googlecode-0.0.2/ant-googlecode.jar" name="gcupload"/>
+		<!-- Create zip distribution -->
+		<zip destfile="${build.release.source.zip}" basedir="${basedir}${file.separator}${project.name}" update="true" />
 		
-		<!-- Export the files to a temporary location -->
-		<svn username="${svn.username}" password="${svn.password}" javahl="${svn.javahl}" svnkit="${svn.svnkit}">
-			<export srcPath="${basedir}/${project.key}" destpath="${build.export}/${project.key}" />
-		</svn>
-		
-		<!-- Create a zip of the temporary files -->
-		<zip destfile="${build.release.source.zip}" basedir="${build.export}/${project.key}" update="true" />
-		
-		<!-- Remove the temporary location -->
-		<delete dir="${build.export}/${project.key}" />
-		
-		<!-- Upload the source files -->
-		<gcupload
-			username="${svn.username}"
-			password="${svn.password}"
-			projectname="${project.name}"
-			filename="${build.release.source.zip}"
-			targetfilename="${project.key}-${project.version}.zip"
-			summary="${project.fullname} - version ${project.version}"
-			labels="Featured, Type-Source, OpSys-All" />
-		
-		<!-- Remove the zip of the temporary files -->
-		<delete file="${build.release.source.zip}" />
-		
-		<!-- Update the release note page from the release notes -->
-		<loadfile srcfile="${build.release.notes.txt}" property="build.releaseNotes" failonerror="true" />
-		
-		<!-- Place the release notes into the main release note page -->
-		<replace file="${build.wiki.releaseNotes.wiki}" token="::latest::" value="::latest::${line.separator}${line.separator}== v${project.version} ==${line.separator}${line.separator}Released: ${build.date} UTC${line.separator}${line.separator}${build.releaseNotes}" />
-		
-		<!-- Create a new tag from the trunk -->
-		<svn username="${svn.username}" password="${svn.password}" javahl="${svn.javahl}" svnkit="${svn.svnkit}">
-			<copy srcPath="${basedir}" destURL="${svn.privurl}/tags/${project.version}" message="Tagging release version: ${project.version}" />
-		</svn>
-		
-		<!-- Reset the release notes for the next version -->
-		<echo append="false" file="${build.release.notes.txt}" message="  * " />
-		
-		<!-- Update the build version -->
+		<!-- Update the build version
 		<propertyfile file="${build.dist}/settings/version.properties" comment="Version properties">
 			<entry key="project.version.build" value="1" operation="+" type="int"/>
 		</propertyfile>
-		
-		<!-- Call the release template target -->
-		<antcall target="releaseTemplate"/>
-		
-		<!-- Commit changes -->
-		<svn username="${svn.username}" password="${svn.password}" javahl="${svn.javahl}" svnkit="${svn.svnkit}">
-			<commit dir="${basedir}" recurse="true" message="Release changes from version: ${project.version}"/>
-			<commit dir="${build.wiki.path}" recurse="true" message="Wiki changes from version: ${project.version}"/>
-		</svn>
+		-->
 		
 		<echo message="Finished: Release of version ${project.version} complete"/>
 	</target>
 	
-	<target name="releaseTemplate" depends="template">
+	<target name="releaseTemplate">
 		<echo message="Starting: Release Template"/>
 		
 		<!-- Copy the version file -->
@@ -160,101 +113,11 @@
 		<echo message="Finished: Release Template"/>
 	</target>
 	
-	<target name="statSVN" depends="svnLog" description="Generates statistics from the repository">
-		<echo message="Starting: SVN Statistics"/>
-		
-		<java jar="${build.lib}/statSVN-0.5.0/statsvn.jar" fork="true" failonerror="true">
-			<arg value="-title" />
-			<arg value="${project.fullname}" />
-			<arg value="-include" />
-			<arg value="**/*.cfc;**/*.cfm;**/*.js;**/*.css;**/*.xml;**/*.properties" />
-			<arg value="-output-dir" />
-			<arg value="${build.dist}/stats" />
-			<arg value="-username" />
-			<arg value="${svn.username}" />
-			<arg value="-password" />
-			<arg value="${svn.password}" />
-			<arg value="-disable-twitter-button" />
-			<arg value="-config-file" />
-			<arg value="${build.dist}/settings/statSVN.properties" />
-			<arg value="${build.logs.svn}" />
-			<arg value="${basedir}" />
-		</java>
-		
-		<echo message="Finished: SVN Statistics at ${build.dist}/stats"/>
-	</target>
-	
-	<target name="svnCommit" depends="prepareSVN,minify,testVarScoper,testMXUnit" description="Commits the code to the repository">
-		<echo message="Starting: SVN Commit"/>
-		
-		<input addproperty="svn.message" message="Commit Message" />
-		
-		<svn username="${svn.username}" password="${svn.password}" javahl="${svn.javahl}" svnkit="${svn.svnkit}">
-			<commit dir="${basedir}" recurse="true" message="${svn.message}"/>
-		</svn>
-		
-		<echo message="Finished: SVN Commit"/>
-	</target>
-	
-	<target name="svnLog" depends="prepareSVN" description="Generates logs from the repository">
-		<echo message="Starting: SVN Log"/>
-		
-		<exec executable="svn" output="${build.logs.svn}">
-			<arg value="log"/>
-			<arg value="-v"/>
-			<arg value="--xml"/>
-			<arg value="--username"/>
-			<arg value="${svn.username}"/>
-			<arg value="--password"/>
-			<arg value="${svn.password}"/>
-			<arg value="-r"/>
-			<arg value="{${svn.log.startDate}}:{${svn.log.endDate}}"/>
-			<arg value="${basedir}"/>
-		</exec>
-		
-		<!-- TODO Use this version when they get the verbose option working
-		<svn username="${svn.username}" password="${svn.password}" javahl="${svn.javahl}" svnkit="${svn.svnkit}">
-			<log path="${basedir}" startrevision="{${svn.log.startDate}}" destfile="${build.logs.svn}" asxml="true" recurse="true" verbose="true"/>
-		</svn>
-		-->
-		
-		<echo message="Finished: SVN Log at ${build.logs.svn}"/>
-	</target>
-	
-	<target name="svnUpdate" depends="prepareSVN" description="Updates the code from the repository">
-		<echo message="Starting: SVN Update"/>
-		
-		<svn username="${svn.username}" password="${svn.password}" javahl="${svn.javahl}" svnkit="${svn.svnkit}">
-			<update dir="${basedir}" recurse="true"/>
-		</svn>
-		
-		<echo message="Finished: SVN Update"/>
-	</target>
-	
-	<target name="template" depends="prepare" description="Uses the templates to update files with dynamic information">
-		<echo message="Starting: Template"/>
-		
-		<!-- Define the filter set for the template -->
-		<filterset id="templateFilterset">
-			<filtersfile file="${build.dist}/settings/user.properties" />
-			<filtersfile file="${build.dist}/settings/project.properties" />
-			<filtersfile file="${build.dist}/settings/version.properties" />
-		</filterset>
-		
-		<!-- Copy the plugin config file -->
-		<copy tofile="${basedir}/${project.key}/config/plugin.json.cfm" overwrite="true">
-			<fileset file="${build.templates}/config/plugin.json.cfm"/>
-			<filterset refid="templateFilterset"/>
-		</copy>
-		
-		<echo message="Finished: Template"/>
-	</target>
-	
 	<target name="testMXUnit" depends="prepare" description="Runs the Unit Tests">
 		<echo message="Starting: Unit Tests"/>
 		
 		<!-- Load ANT tasks -->
-		<taskdef name="mxunittask" classname="org.mxunit.ant.MXUnitAntTask" classpath="${basedir}/mxunit/ant/lib/mxunit-ant-java5.jar" />
+		<taskdef name="mxunittask" classname="org.mxunit.ant.MXUnitAntTask" classpath="${build.lib}${file.separator}${build.lib.jar.mxunit}" />
 		
 		<mxunittask server="${test.host}" port="${test.port}" outputdir="${build.dist}/unit" defaultrunner="${test.mxunit.defaultrunner}" failureproperty="test.mxunit.failure" verbose="${general.verbose}">
 			<directory path="${basedir}/test" componentPath="${test.mxunit.componentpath}" recurse="true" />

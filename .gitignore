@@ -1,3 +1,6 @@
 .project
+build/logs/
+build/settings/user.properties
+dist/
 user-openid/config/settings.json.cfm
 user-openid/config/version.json.cfm
