@@ -50,9 +50,6 @@
 	<target name="prepare">
 		<echo message="Starting: Environment Preparation"/>
 		
-		<!-- Define log file -->
-		<record name="${build.logs}${file.separator}${build.logs.ant}" />
-		
 		<!-- Make the distribution directory -->
 		<mkdir dir="${build.dist}" />
 		
@@ -61,6 +58,9 @@
 		
 		<!-- Make the unit test directory -->
 		<mkdir dir="${build.dist}/unit" />
+		
+		<!-- Define log file -->
+		<record name="${build.logs}${file.separator}${build.logs.ant}" />
 		
 		<!-- Create the time stamp -->
 		<tstamp>
