@@ -1,34 +1,4 @@
 <cfcomponent extends="plugins.user.inc.service.servUser" output="false">
-	<cffunction name="createUser" access="public" returntype="void" output="false">
-		<cfargument name="currUser" type="component" required="true" />
-		<cfargument name="user" type="component" required="true" />
-		
-		<cfset var eventLog = '' />
-		<cfset var results = '' />
-		
-		<!--- Get the event log from the transport --->
-		<cfset eventLog = variables.transport.theApplication.managers.singleton.getEventLog() />
-		
-		<!--- TODO Check Permissions --->
-		
-		<!--- Create the new ID --->
-		<cfset arguments.user.setUserID( createUUID() ) />
-		
-		<cfquery datasource="#variables.datasource.name#" result="results">
-			INSERT INTO "#variables.datasource.prefix#user"."user"
-			(
-				"userID",
-				"identifier"
-			) VALUES (
-				<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
-				<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
-			)
-		</cfquery>
-		
-		<!--- Log the create event --->
-		<cfset eventLog.logEvent('user-openid', 'userCreate', 'Created the ''' & arguments.user.getIdentifier() & ''' user.', arguments.currUser.getUserID(), arguments.user.getUserID()) />
-	</cffunction>
-	
 	<cffunction name="discoverUser" access="public" returntype="string" output="false">
 		<cfargument name="request" type="struct" required="true" />
 		
@@ -86,14 +56,60 @@
 		<cfreturn results />
 	</cffunction>
 	
+	<cffunction name="setUser" access="public" returntype="void" output="false">
+		<cfargument name="currUser" type="component" required="true" />
+		<cfargument name="user" type="component" required="true" />
+		
+		<cfset var eventLog = '' />
+		<cfset var observer = '' />
+		<cfset var results = '' />
+		
+		<!--- Get the event observer --->
+		<cfset observer = getPluginObserver('user-openid', 'user') />
+		
+		<!--- TODO Check Permissions --->
+		
+		<!--- Before Save Event --->
+		<cfset observer.beforeSave(variables.transport, arguments.currUser, arguments.content) />
+		
+		<cfif arguments.user.getUserID() eq ''>
+			<!--- Create the new ID --->
+			<cfset arguments.user.setUserID( createUUID() ) />
+			
+			<cfquery datasource="#variables.datasource.name#" result="results">
+				INSERT INTO "#variables.datasource.prefix#user"."user"
+				(
+					"userID",
+					"identifier"
+				) VALUES (
+					<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
+					<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
+				)
+			</cfquery>
+			
+			<!--- After Create Event --->
+			<cfset observer.afterCreate(variables.transport, arguments.currUser, arguments.content) />
+		<cfelse>
+			<!--- After Update Event --->
+			<cfset observer.afterUpdate(variables.transport, arguments.currUser, arguments.content) />
+		</cfif>
+		
+		<!--- After Save Event --->
+		<cfset observer.afterSave(variables.transport, arguments.currUser, arguments.content) />
+	</cffunction>
+	
 	<cffunction name="verifyUser" access="public" returntype="void" output="false">
 		<cfargument name="user" type="component" required="true" />
 		
 		<cfset var eventLog = '' />
+		<cfset var observer = '' />
 		<cfset var results = '' />
 		
-		<!--- Get the event log from the transport --->
-		<cfset eventLog = variables.transport.theApplication.managers.singleton.getEventLog() />
+		<!--- Get the event observer --->
+		<cfset observer = getPluginObserver('user-openid', 'user') />
+		
+		<!--- Before Verify Event --->
+		<cfset observer.beforeVerify(variables.transport, arguments.user) />
 		
 		<!--- TODO Check Permissions --->
 		<cfif 1 eq 1>
@@ -122,11 +138,14 @@
 				</cfquery>
 			</cfif>
 			
-			<!--- Log the successful login event --->
-			<cfset eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ''' & arguments.user.getIdentity() & ''' on ' & variables.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
+			<!--- After Success Event --->
+			<cfset observer.afterSuccess(variables.transport, arguments.user) />
 		<cfelse>
-			<!--- Log the failed login event --->
-			<cfset eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ''' & arguments.user.getIdentity() & ''' on ' & variables.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID()) />
+			<!--- After Fail Event --->
+			<cfset observer.afterFail(variables.transport, arguments.user) />
 		</cfif>
+		
+		<!--- After Verify Event --->
+		<cfset observer.afterVerify(variables.transport, arguments.user) />
 	</cffunction>
 </cfcomponent>
