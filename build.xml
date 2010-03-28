@@ -11,18 +11,18 @@
 		<echo message="Starting: CSS and JS minification"/>
 
 		<!-- Create a single, concatenated JS file
-		<concat destfile="${build.script}jquery.${project.name}.js">
+		<concat destfile="${build.script}jquery.${project.key}.js">
 			<fileset dir="${build.script}" includes="jquery.base.js" />
 		</concat> -->
 		
 		<!-- Create a single, concatenated CSS file
-		<concat destfile="${build.style}${project.name}.css">
+		<concat destfile="${build.style}${project.key}.css">
 			<fileset dir="${build.style}" includes="base.css" />
 		</concat> -->
 		
 		<!-- Compress the JS files with Google Closure Compiler -->
-		<apply executable="java" parallel="false" dest="${basedir}/${project.name}">
-			<fileset dir="${basedir}${file.separator}${project.name}" includes="**/*.js" excludes="**/*-min.js" />
+		<apply executable="java" parallel="false" dest="${basedir}/${project.key}">
+			<fileset dir="${basedir}${file.separator}${project.key}" includes="**/*.js" excludes="**/*-min.js" />
 			<arg line="-jar"/>
 			<arg path="${build.lib}${file.separator}${build.lib.jar.compiler}" />
 			<arg line="--js"/>
@@ -33,8 +33,8 @@
 		</apply>
 		
 		<!-- Compress the CSS files with Yahoo UI Compressor -->
-		<apply executable="java" parallel="false" dest="${basedir}/${project.name}">
-			<fileset dir="${basedir}${file.separator}${project.name}" includes="**/*.css" excludes="**/*-min.css" />
+		<apply executable="java" parallel="false" dest="${basedir}/${project.key}">
+			<fileset dir="${basedir}${file.separator}${project.key}" includes="**/*.css" excludes="**/*-min.css" />
 			<arg line="-jar"/>
 			<arg path="${build.lib}${file.separator}${build.lib.jar.compressor}" />
 			<arg line="-v"/>
@@ -71,10 +71,10 @@
 		<property name="project.version" value="${project.version.major}.${project.version.minor}.${project.version.build}"/>
 		
 		<!-- Set the script directory -->
-		<property name="build.script" value="${basedir}${file.separator}${project.name}${file.separator}script${file.separator}"/>
+		<property name="build.script" value="${basedir}${file.separator}${project.key}${file.separator}script${file.separator}"/>
 		
 		<!-- Set the style directory -->
-		<property name="build.style" value="${basedir}${file.separator}${project.name}${file.separator}style${file.separator}"/>
+		<property name="build.style" value="${basedir}${file.separator}${project.key}${file.separator}style${file.separator}"/>
 		
 		<echo message="Finished: Environment Preparation"/>
 	</target>
@@ -83,7 +83,7 @@
 		<echo message="Starting: Release of version ${project.version}"/>
 		
 		<!-- Create zip distribution -->
-		<zip destfile="${build.release.source.zip}" basedir="${basedir}${file.separator}${project.name}" update="true" />
+		<zip destfile="${build.release.source.zip}" basedir="${basedir}${file.separator}${project.key}" update="true" />
 		
 		<!-- Update the build version
 		<propertyfile file="${build.dist}/settings/version.properties" comment="Version properties">
