@@ -9,7 +9,7 @@
 		<cfreturn result />
 	</cffunction>
 	
-	<cffunction name="readUser" access="public" returntype="component" output="false">
+	<cffunction name="getUser" access="public" returntype="component" output="false">
 		<cfargument name="userID" type="string" required="true" />
 		
 		<cfset var i18n = '' />
@@ -36,7 +36,7 @@
 		<cfreturn user />
 	</cffunction>
 	
-	<cffunction name="readUsers" access="public" returntype="query" output="false">
+	<cffunction name="getUsers" access="public" returntype="query" output="false">
 		<cfargument name="filter" type="struct" default="#{}#" />
 		
 		<cfset var results = '' />
