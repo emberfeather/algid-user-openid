@@ -11,7 +11,9 @@
 	<!--- TODO Verify valid login --->
 	<cfset servUser.verifyUser( user ) />
 	
-	<cflocation url="#transport.theSession.redirect#" addtoken="false" />
+	<cfif structKeyExists(transport.theSession, 'redirect')>
+		<cflocation url="#transport.theSession.redirect#" addtoken="false" />
+	</cfif>
 </cfif>
 
 <!--- Include minified files for production --->
