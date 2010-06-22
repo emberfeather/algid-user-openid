@@ -1,12 +1,25 @@
 <cfcomponent extends="plugins.user.inc.service.servUser" output="false">
 	<cffunction name="discoverUser" access="public" returntype="string" output="false">
 		<cfargument name="request" type="struct" required="true" />
+		<cfargument name="returnUrl" type="string" required="true" />
 		
-		<cfset var result = '' />
+		<cfset var authReq = '' />
+		<cfset var discovered = '' />
+		<cfset var discoveries = '' />
+		<cfset var openIDConsumer = '' />
 		
-		<!--- TODO Discover the final identity for the openID provider --->
+		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
 		
-		<cfreturn result />
+		<cfset discoveries = openIDConsumer.discover(arguments.request.identity) />
+		
+		<cfset discovered = openIDConsumer.associate(discoveries) />
+		
+		<!--- Store the discoved for validating the response --->
+		<cfset variables.transport.theSession.managers.singleton.setOpenIDDiscovered(discovered) />
+		
+		<cfset authReq = openIDConsumer.authenticate(discovered, arguments.returnUrl) />
+		
+		<cfreturn authReq.getDestinationUrl(true) />
 	</cffunction>
 	
 	<cffunction name="getUser" access="public" returntype="component" output="false">
@@ -100,49 +113,61 @@
 	
 	<cffunction name="verifyUser" access="public" returntype="void" output="false">
 		<cfargument name="user" type="component" required="true" />
+		<cfargument name="responseUrl" type="string" required="true" />
 		
+		<cfset var authReq = '' />
+		<cfset var discovered = '' />
+		<cfset var discoveries = '' />
 		<cfset var eventLog = '' />
 		<cfset var observer = '' />
+		<cfset var openIDConsumer = '' />
+		<cfset var openIDResp = '' />
 		<cfset var results = '' />
+		<cfset var returnUrl = '' />
 		
-		<!--- Get the event observer --->
+		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
+		<cfset discovered = variables.transport.theSession.managers.singleton.getOpenIDDiscovered() />
+		
+		<cfif not variables.transport.theSession.managers.singleton.hasOpenIDDiscovered()>
+			<cfthrow message="Missing OpenID discovery information">
+		</cfif>
+		
 		<cfset observer = getPluginObserver('user-openid', 'user') />
-		
-		<!--- Before Verify Event --->
 		<cfset observer.beforeVerify(variables.transport, arguments.user) />
 		
-		<!--- TODO Check Permissions --->
-		<cfif 1 eq 1>
+		<cfset openIDResp = createObject('java', 'org.openid4java.message.ParameterList', '/plugins/user-openid/inc/lib/openid4java.jar').init(variables.transport.theURL)>
+		
+		<cfset verification = openIDConsumer.verify(arguments.responseUrl, openidResp, discovered)>
+		
+		<cfset verified = verification.getVerifiedId()>
+		
+		<cfif isNull(verified)>
+			<!--- After Fail Event --->
+			<cfset observer.afterFail(variables.transport, arguments.user, verification.getStatusMsg()) />
+			
+			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#">
+		<cfelse>
 			<!--- TODO Update the user object with the information from the provider and the database --->
+			
 			<cfquery name="results" datasource="#variables.datasource.name#">
-				SELECT "userID", "identifier"
+				SELECT "userID"
 				FROM "#variables.datasource.prefix#user"."user"
+				WHERE "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#verified#" />
+					AND "archivedOn" IS NULL
 			</cfquery>
 			
 			<cfif results.recordCount>
 				<cfset arguments.user.setUserID(results.userID) />
-				<cfset arguments.user.setIdentifier(results.identifier) />
-			<cfelse>
-				<cfset arguments.user.setUserID( createUUID() ) />
-				<cfset arguments.user.setIdentifier('http://web.monkey.ef') />
+				<cfset arguments.user.setIdentity(verified) />
 				
-				<cfquery name="results" datasource="#variables.datasource.name#">
-					INSERT INTO "#variables.datasource.prefix#user"."user"
-					(
-						"userID",
-						"identifier"
-					) VALUES (
-						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
-						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
-					)
-				</cfquery>
+				<!--- After Success Event --->
+				<cfset observer.afterSuccess(variables.transport, arguments.user) />
+			<cfelse>
+				<!--- After Fail Event --->
+				<cfset observer.afterFail(variables.transport, arguments.user, 'User does not exist in system') />
+				
+				<cfthrow type="validation" message="The OpenID identifier provided does not exist as a current user" detail="Could not find the #verified# identifier as a current user">
 			</cfif>
-			
-			<!--- After Success Event --->
-			<cfset observer.afterSuccess(variables.transport, arguments.user) />
-		<cfelse>
-			<!--- After Fail Event --->
-			<cfset observer.afterFail(variables.transport, arguments.user) />
 		</cfif>
 		
 		<!--- After Verify Event --->

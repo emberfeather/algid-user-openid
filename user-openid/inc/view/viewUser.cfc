@@ -3,23 +3,29 @@
 		<cfargument name="request" type="struct" default="#{}#" />
 		
 		<cfset var html = '' />
+		<cfset var i18n = '' />
+		<cfset var theForm = '' />
 		<cfset var theURL = '' />
 		
-		<cfparam name="arguments.request.openID" default="" />
-		
+		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
 		<cfset theURL = variables.transport.theRequest.managers.singleton.getUrl() />
+		<cfset theForm = variables.transport.theApplication.factories.transient.getFormStandard('login', i18n) />
 		
-		<!--- TODO use the form cfc --->
-		<cfsavecontent variable="html">
-			<cfoutput>
-				<form action="#theURL.get()#" method="post">
-					<input id="openid_identifier" type="text" name="openID" value="#arguments.request.openID#">
-					<input type="submit" value="Login" />
-				</form>
-			</cfoutput>
-		</cfsavecontent>
+		<cfset theUrl.cleanLogin() />
+		<cfset theUrl.setLogin('_base', '/account/login') />
 		
-		<cfreturn html />
+		<!--- Add the resource bundle for the view --->
+		<cfset theForm.addBundle('plugins/user-openid/i18n/inc/view', 'viewUser') />
+		
+		<!--- Identifier --->
+		<cfset theForm.addElement('text', {
+				id = "identity",
+				name = "identity",
+				label = "identity",
+				value = ( structKeyExists(arguments.request, 'identity') ? arguments.request.identity : '' )
+			}) />
+		
+		<cfreturn theForm.toHTML(theURL.getLogin()) />
 	</cffunction>
 	
 	<cffunction name="datagrid" access="public" returntype="string" output="false">
