@@ -145,6 +145,7 @@
 		<cfset var discovered = '' />
 		<cfset var discoveries = '' />
 		<cfset var eventLog = '' />
+		<cfset var ext = '' />
 		<cfset var fullName = '' />
 		<cfset var observer = '' />
 		<cfset var openIDConsumer = '' />
