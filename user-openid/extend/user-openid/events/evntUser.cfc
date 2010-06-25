@@ -30,7 +30,7 @@
 		eventLog = arguments.transport.theApplication.managers.singleton.getEventLog();
 		
 		// Log the successful login event
-		eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ''' & arguments.user.getIdentity() & ''' on ' & arguments.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID());
+		eventLog.logEvent('user-openid', 'userVerified', 'Verified the OpenID login for ''' & arguments.user.getFullname() & ''' on ' & arguments.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID());
 	}
 	
 	/* required user */

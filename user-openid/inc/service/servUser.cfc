@@ -6,6 +6,7 @@
 		<cfset var authReq = '' />
 		<cfset var discovered = '' />
 		<cfset var discoveries = '' />
+		<cfset var fetch = '' />
 		<cfset var openIDConsumer = '' />
 		
 		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
@@ -18,6 +19,16 @@
 		<cfset variables.transport.theSession.managers.singleton.setOpenIDDiscovered(discovered) />
 		
 		<cfset authReq = openIDConsumer.authenticate(discovered, arguments.returnUrl) />
+		
+		<!--- Add fetch requests --->
+		<cfset fetch = createObject('java', 'org.openid4java.message.ax.FetchRequest', '/plugins/user-openid/inc/lib/openid4java.jar').createFetchRequest() />
+		
+		<cfset fetch.addAttribute("FirstName", "http://axschema.org/namePerson/first", true) />
+		<cfset fetch.addAttribute("LastName", "http://axschema.org/namePerson/last", true) />
+		<cfset fetch.addAttribute("Email", "http://axschema.org/contact/email", true) />
+		<cfset fetch.addAttribute("Language", "http://axschema.org/pref/language", true) />
+		
+		<cfset authReq.addExtension(fetch) />
 		
 		<cfreturn authReq.getDestinationUrl(true) />
 	</cffunction>
@@ -129,10 +140,12 @@
 		<cfargument name="user" type="component" required="true" />
 		<cfargument name="responseUrl" type="string" required="true" />
 		
-		<cfset var authReq = '' />
+		<cfset var authResp = '' />
+		<cfset var axMessage = '' />
 		<cfset var discovered = '' />
 		<cfset var discoveries = '' />
 		<cfset var eventLog = '' />
+		<cfset var fullName = '' />
 		<cfset var observer = '' />
 		<cfset var openIDConsumer = '' />
 		<cfset var openIDResp = '' />
@@ -151,11 +164,11 @@
 		<cfset observer = getPluginObserver('user-openid', 'user') />
 		<cfset observer.beforeVerify(variables.transport, arguments.user) />
 		
-		<cfset openIDResp = createObject('java', 'org.openid4java.message.ParameterList', '/plugins/user-openid/inc/lib/openid4java.jar').init(variables.transport.theURL)>
+		<cfset openIDResp = createObject('java', 'org.openid4java.message.ParameterList', '/plugins/user-openid/inc/lib/openid4java.jar').init(variables.transport.theURL) />
 		
-		<cfset verification = openIDConsumer.verify(arguments.responseUrl, openidResp, discovered)>
+		<cfset verification = openIDConsumer.verify(arguments.responseUrl, openidResp, discovered) />
 		
-		<cfset verified = verification.getVerifiedId()>
+		<cfset verified = verification.getVerifiedId() />
 		
 		<cfif isNull(verified)>
 			<!--- After Fail Event --->
@@ -175,6 +188,39 @@
 			<cfif results.recordCount>
 				<cfset arguments.user.setUserID(results.userID) />
 				<cfset arguments.user.setIdentity(verified) />
+				
+				<cfset axMessage = createObject('java', 'org.openid4java.message.ax.AxMessage', '/plugins/user-openid/inc/lib/openid4java.jar') />
+				
+				<cfset authResp = verification.getAuthResponse() />
+				
+				<!--- Check the response for any extensions --->
+				<cfif authResp.hasExtension(axMessage.OPENID_NS_AX)>
+					<cfset ext = authResp.getExtension(axMessage.OPENID_NS_AX) />
+					
+					<cfset fullname = '' />
+					
+					<cfif ext.getCount('FirstName')>
+						<cfset fullname = ext.getAttributeValue('FirstName') />
+					</cfif>
+					
+					<cfif ext.getCount('LastName')>
+						<cfset fullname = listAppend(fullname, ext.getAttributeValue('LastName'), ' ') />
+					</cfif>
+					
+					<cfset arguments.user.setFullName(fullname) />
+					
+					
+					<cfif ext.getCount('Email')>
+						<cfset arguments.user.setEmail(ext.getAttributeValue('Email')) />
+					</cfif>
+					
+					<cfif ext.getCount('Language')>
+						<cfset arguments.user.setLanguage(ext.getAttributeValue('Language')) />
+						
+						<!--- Store the language in the session --->
+						<cfset transport.theSession.managers.singleton.getSession().setLocale(ext.getAttributeValue('Language')) />
+					</cfif>
+				</cfif>
 				
 				<!--- After Success Event --->
 				<cfset observer.afterSuccess(variables.transport, arguments.user) />
