@@ -1,4 +1,4 @@
-<cfcomponent extends="algid.inc.resource.base.view" output="false">
+<cfcomponent extends="plugins.user.inc.view.viewUser" output="false">
 	<cffunction name="login" access="public" returntype="string" output="false">
 		<cfargument name="request" type="struct" default="#{}#" />
 		
@@ -35,16 +35,38 @@
 		<cfset var datagrid = '' />
 		<cfset var i18n = '' />
 		
+		<cfset arguments.options.theURL = variables.transport.theRequest.managers.singleton.getURL() />
 		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
 		<cfset datagrid = variables.transport.theApplication.factories.transient.getDatagrid(i18n, variables.transport.theSession.managers.singleton.getSession().getLocale()) />
 		
-		<!--- TODO Remove --->
-		<cfdump var="#arguments.data#" />
-		<cfabort />
+		<!--- Add the resource bundle for the view --->
+		<cfset datagrid.addBundle('plugins/user/i18n/inc/view', 'viewUser') />
+		<cfset datagrid.addBundle('plugins/user-openid/i18n/inc/view', 'viewUser') />
 		
 		<cfset datagrid.addColumn({
-				key = 'permission',
-				label = 'Permission'
+				key = 'fullname',
+				label = 'fullname'
+			}) />
+		
+		<cfset datagrid.addColumn({
+				key = 'identifier',
+				label = 'identity'
+			}) />
+		
+		<cfset datagrid.addColumn({
+				class = 'phantom align-right',
+				value = [ 'delete', 'edit' ],
+				link = [
+					{
+						'user' = 'userID',
+						'_base' = '/admin/user/archive'
+					},
+					{
+						'user' = 'userID',
+						'_base' = '/admin/user/edit'
+					}
+				],
+				linkClass = [ 'delete', '' ]
 			}) />
 		
 		<cfreturn datagrid.toHTML( arguments.data, arguments.options ) />

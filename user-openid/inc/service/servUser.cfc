@@ -55,9 +55,17 @@
 		<cfset var results = '' />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
-			SELECT "userID", "identifier"
+			SELECT "userID", "fullname", "identifier"
 			FROM "#variables.datasource.prefix#user"."user"
 			WHERE 1=1
+			
+			<cfif structKeyExists(arguments.filter, 'search') and arguments.filter.search neq ''>
+				AND (
+					"fullname" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					OR "identifier" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					OR "username" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+				)
+			</cfif>
 			
 			<cfif structKeyExists(arguments.filter, 'identifier')>
 				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.user#" />
