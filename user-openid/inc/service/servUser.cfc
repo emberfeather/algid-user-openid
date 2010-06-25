@@ -53,6 +53,7 @@
 		<cfargument name="filter" type="struct" default="#{}#" />
 		
 		<cfset var results = '' />
+		<cfset var useFuzzySearch = variables.transport.theApplication.managers.singleton.getApplication().getUseFuzzySearch() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "fullname", "identifier"
@@ -62,10 +63,13 @@
 			<cfif structKeyExists(arguments.filter, 'search') and arguments.filter.search neq ''>
 				AND (
 					"fullname" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
-					OR dmetaphone("fullname") = dmetaphone(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
-					OR dmetaphone_alt("fullname") = dmetaphone_alt(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
 					OR "identifier" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
 					OR "username" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					
+					<cfif useFuzzySearch>
+						OR dmetaphone("fullname") = dmetaphone(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
+						OR dmetaphone_alt("fullname") = dmetaphone_alt(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
+					</cfif>
 				)
 			</cfif>
 			
