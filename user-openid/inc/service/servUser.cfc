@@ -11,6 +11,10 @@
 		
 		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
 		
+		<cfif not len(trim(arguments.request.identity))>
+			<cfthrow type="validation" message="Missing OpenID Identifier" detail="The identifier provided was empty" />
+		</cfif>
+		
 		<cfset discoveries = openIDConsumer.discover(arguments.request.identity) />
 		
 		<cfset discovered = openIDConsumer.associate(discoveries) />
