@@ -124,6 +124,8 @@
 		<cfset var openIDResp = '' />
 		<cfset var results = '' />
 		<cfset var returnUrl = '' />
+		<cfset var verified = '' />
+		<cfset var verification = '' />
 		
 		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
 		<cfset discovered = variables.transport.theSession.managers.singleton.getOpenIDDiscovered() />
