@@ -192,7 +192,7 @@
 			
 			<cfif results.recordCount>
 				<cfset arguments.user.setUserID(results.userID) />
-				<cfset arguments.user.setIdentity(verified) />
+				<cfset arguments.user.setIdentity(verified.toString()) />
 				
 				<cfset axMessage = createObject('java', 'org.openid4java.message.ax.AxMessage', '/plugins/user-openid/inc/lib/openid4java.jar') />
 				
