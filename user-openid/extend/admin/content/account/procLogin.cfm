@@ -21,4 +21,10 @@
 	<cfif structKeyExists(transport.theSession, 'redirect')>
 		<cflocation url="#transport.theSession.redirect#" addtoken="false" />
 	</cfif>
+	
+	<!--- If no saved redirect, send to main page --->
+	<cfset theUrl.cleanRedirect() />
+	<cfset theUrl.setRedirect('_base', '/index') />
+	
+	<cfset theUrl.redirectRedirect() />
 </cfif>
