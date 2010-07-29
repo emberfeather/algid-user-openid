@@ -1,4 +1,4 @@
-<cfset servUser = transport.theApplication.factories.transient.getServUserForUser(transport.theApplication.managers.singleton.getApplication().getDSUpdate(), transport) />
+<cfset servUser = services.get('user', 'user') />
 
 <!--- Include minified files for production --->
 <cfset midfix = (transport.theApplication.managers.singleton.getApplication().isProduction() ? '-min' : '') />
