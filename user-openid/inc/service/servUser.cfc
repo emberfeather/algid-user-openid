@@ -40,12 +40,9 @@
 	<cffunction name="getUser" access="public" returntype="component" output="false">
 		<cfargument name="userID" type="string" required="true" />
 		
-		<cfset var i18n = '' />
 		<cfset var objectSerial = '' />
 		<cfset var results = '' />
 		<cfset var user = '' />
-		
-		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
@@ -53,7 +50,7 @@
 			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userID#" null="#arguments.userID eq ''#" />::uuid
 		</cfquery>
 		
-		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.managers.singleton.getSession().getLocale()) />
+		<cfset user = getModel('user', 'user') />
 		
 		<cfif results.recordCount>
 			<cfset objectSerial = variables.transport.theApplication.managers.singleton.getObjectSerial() />
