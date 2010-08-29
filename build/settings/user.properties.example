@@ -1,19 +1,5 @@
-# SVN Information
-svn.username=
-#svn.password=
-
-# SVN Log Options
-svn.log.startDate=2009-01-01
-
 # General
 general.verbose=true
-
-# SVN Settings
-svn.javahl=false
-svn.svnkit=true
-
-# Build Settings
-build.wiki.path=/path/to/wiki/files
 
 # Test Settings
 test.host=localhost
