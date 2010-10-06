@@ -1,7 +1,6 @@
 <cfcomponent extends="algid.inc.resource.plugin.configure" output="false">
 <cfscript>
-	/* required theApplication */
-	public void function onApplicationStart(struct theApplication) {
+	public void function onApplicationStart(required struct theApplication) {
 		var openIDConsumer = '';
 		
 		openIDConsumer = createObject('java', 'org.openid4java.consumer.ConsumerManager', '/plugins/user-openid/inc/lib/openid4java.jar').init();
