@@ -40,7 +40,7 @@
 	<cffunction name="getUser" access="public" returntype="component" output="false">
 		<cfargument name="userID" type="string" required="true" />
 		
-		<cfset var objectSerial = '' />
+		<cfset var modelSerial = '' />
 		<cfset var results = '' />
 		<cfset var user = '' />
 		
@@ -53,9 +53,9 @@
 		<cfset user = getModel('user', 'user') />
 		
 		<cfif results.recordCount>
-			<cfset objectSerial = variables.transport.theApplication.managers.singleton.getObjectSerial() />
+			<cfset modelSerial = variables.transport.theApplication.factories.transient.getModelSerial(variables.transport) />
 			
-			<cfset objectSerial.deserialize(results, user) />
+			<cfset modelSerial.deserialize(results, user) />
 		</cfif>
 		
 		<cfreturn user />
