@@ -1,23 +1,48 @@
 <cfcomponent extends="plugins.user.inc.service.servUser" output="false">
 	<cffunction name="discoverUser" access="public" returntype="string" output="false">
 		<cfargument name="request" type="struct" required="true" />
+		<cfargument name="returnUrl" type="string" required="true" />
 		
-		<cfset var result = '' />
+		<cfset var authReq = '' />
+		<cfset var discovered = '' />
+		<cfset var discoveries = '' />
+		<cfset var fetch = '' />
+		<cfset var openIDConsumer = '' />
 		
-		<!--- TODO Discover the final identity for the openID provider --->
+		<cfif not len(trim(arguments.request.identity))>
+			<cfthrow type="validation" message="Missing OpenID Identifier" detail="The identifier provided was empty" />
+		</cfif>
 		
-		<cfreturn result />
+		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
+		
+		<cfset discoveries = openIDConsumer.discover(arguments.request.identity) />
+		
+		<cfset discovered = openIDConsumer.associate(discoveries) />
+		
+		<!--- Store the discoved for validating the response --->
+		<cfset variables.transport.theSession.managers.singleton.setOpenIDDiscovered(discovered) />
+		
+		<cfset authReq = openIDConsumer.authenticate(discovered, arguments.returnUrl) />
+		
+		<!--- Add fetch requests --->
+		<cfset fetch = createObject('java', 'org.openid4java.message.ax.FetchRequest', '/plugins/user-openid/inc/lib/openid4java.jar').createFetchRequest() />
+		
+		<cfset fetch.addAttribute("FirstName", "http://axschema.org/namePerson/first", true) />
+		<cfset fetch.addAttribute("LastName", "http://axschema.org/namePerson/last", true) />
+		<cfset fetch.addAttribute("Email", "http://axschema.org/contact/email", true) />
+		<cfset fetch.addAttribute("Language", "http://axschema.org/pref/language", true) />
+		
+		<cfset authReq.addExtension(fetch) />
+		
+		<cfreturn authReq.getDestinationUrl(true) />
 	</cffunction>
 	
 	<cffunction name="getUser" access="public" returntype="component" output="false">
 		<cfargument name="userID" type="string" required="true" />
 		
-		<cfset var i18n = '' />
-		<cfset var objectSerial = '' />
+		<cfset var modelSerial = '' />
 		<cfset var results = '' />
 		<cfset var user = '' />
-		
-		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
@@ -25,12 +50,12 @@
 			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userID#" null="#arguments.userID eq ''#" />::uuid
 		</cfquery>
 		
-		<cfset user = variables.transport.theApplication.factories.transient.getModUserForUser(i18n, variables.transport.theSession.managers.singleton.getSession().getLocale()) />
+		<cfset user = getModel('user', 'user') />
 		
 		<cfif results.recordCount>
-			<cfset objectSerial = variables.transport.theApplication.managers.singleton.getObjectSerial() />
+			<cfset modelSerial = variables.transport.theApplication.factories.transient.getModelSerial(variables.transport) />
 			
-			<cfset objectSerial.deserialize(results, user) />
+			<cfset modelSerial.deserialize(results, user) />
 		</cfif>
 		
 		<cfreturn user />
@@ -40,11 +65,25 @@
 		<cfargument name="filter" type="struct" default="#{}#" />
 		
 		<cfset var results = '' />
+		<cfset var useFuzzySearch = variables.transport.theApplication.managers.singleton.getApplication().getUseFuzzySearch() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
-			SELECT "userID", "identifier"
+			SELECT "userID", "fullname", "identifier"
 			FROM "#variables.datasource.prefix#user"."user"
 			WHERE 1=1
+			
+			<cfif structKeyExists(arguments.filter, 'search') and arguments.filter.search neq ''>
+				AND (
+					"fullname" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					OR "identifier" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					OR "username" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					
+					<cfif useFuzzySearch>
+						OR dmetaphone("fullname") = dmetaphone(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
+						OR dmetaphone_alt("fullname") = dmetaphone_alt(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
+					</cfif>
+				)
+			</cfif>
 			
 			<cfif structKeyExists(arguments.filter, 'identifier')>
 				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.user#" />
@@ -100,49 +139,99 @@
 	
 	<cffunction name="verifyUser" access="public" returntype="void" output="false">
 		<cfargument name="user" type="component" required="true" />
+		<cfargument name="responseUrl" type="string" required="true" />
 		
+		<cfset var authResp = '' />
+		<cfset var axMessage = '' />
+		<cfset var discovered = '' />
+		<cfset var discoveries = '' />
 		<cfset var eventLog = '' />
+		<cfset var ext = '' />
+		<cfset var fullName = '' />
 		<cfset var observer = '' />
+		<cfset var openIDConsumer = '' />
+		<cfset var openIDResp = '' />
 		<cfset var results = '' />
+		<cfset var returnUrl = '' />
+		<cfset var verified = '' />
+		<cfset var verification = '' />
 		
-		<!--- Get the event observer --->
+		<cfset openIDConsumer = variables.transport.theApplication.managers.singleton.getOpenIDConsumer() />
+		<cfset discovered = variables.transport.theSession.managers.singleton.getOpenIDDiscovered() />
+		
+		<cfif not variables.transport.theSession.managers.singleton.hasOpenIDDiscovered()>
+			<cfthrow message="Missing OpenID discovery information">
+		</cfif>
+		
 		<cfset observer = getPluginObserver('user-openid', 'user') />
-		
-		<!--- Before Verify Event --->
 		<cfset observer.beforeVerify(variables.transport, arguments.user) />
 		
-		<!--- TODO Check Permissions --->
-		<cfif 1 eq 1>
+		<cfset openIDResp = createObject('java', 'org.openid4java.message.ParameterList', '/plugins/user-openid/inc/lib/openid4java.jar').init(variables.transport.theURL) />
+		
+		<cfset verification = openIDConsumer.verify(arguments.responseUrl, openidResp, discovered) />
+		
+		<cfset verified = verification.getVerifiedId() />
+		
+		<cfif isNull(verified)>
+			<!--- After Fail Event --->
+			<cfset observer.afterFail(variables.transport, arguments.user, verification.getStatusMsg()) />
+			
+			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#">
+		<cfelse>
 			<!--- TODO Update the user object with the information from the provider and the database --->
+			
 			<cfquery name="results" datasource="#variables.datasource.name#">
-				SELECT "userID", "identifier"
+				SELECT "userID"
 				FROM "#variables.datasource.prefix#user"."user"
+				WHERE "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#verified#" />
+					AND "archivedOn" IS NULL
 			</cfquery>
 			
 			<cfif results.recordCount>
 				<cfset arguments.user.setUserID(results.userID) />
-				<cfset arguments.user.setIdentifier(results.identifier) />
-			<cfelse>
-				<cfset arguments.user.setUserID( createUUID() ) />
-				<cfset arguments.user.setIdentifier('http://web.monkey.ef') />
+				<cfset arguments.user.setIdentity(verified.toString()) />
 				
-				<cfquery name="results" datasource="#variables.datasource.name#">
-					INSERT INTO "#variables.datasource.prefix#user"."user"
-					(
-						"userID",
-						"identifier"
-					) VALUES (
-						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
-						<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
-					)
-				</cfquery>
+				<cfset axMessage = createObject('java', 'org.openid4java.message.ax.AxMessage', '/plugins/user-openid/inc/lib/openid4java.jar') />
+				
+				<cfset authResp = verification.getAuthResponse() />
+				
+				<!--- Check the response for any extensions --->
+				<cfif authResp.hasExtension(axMessage.OPENID_NS_AX)>
+					<cfset ext = authResp.getExtension(axMessage.OPENID_NS_AX) />
+					
+					<cfset fullname = '' />
+					
+					<cfif ext.getCount('FirstName')>
+						<cfset fullname = ext.getAttributeValue('FirstName') />
+					</cfif>
+					
+					<cfif ext.getCount('LastName')>
+						<cfset fullname = listAppend(fullname, ext.getAttributeValue('LastName'), ' ') />
+					</cfif>
+					
+					<cfset arguments.user.setFullName(fullname) />
+					
+					
+					<cfif ext.getCount('Email')>
+						<cfset arguments.user.setEmail(ext.getAttributeValue('Email')) />
+					</cfif>
+					
+					<cfif ext.getCount('Language')>
+						<cfset arguments.user.setLanguage(ext.getAttributeValue('Language')) />
+						
+						<!--- Store the language in the session --->
+						<cfset transport.theSession.managers.singleton.getSession().setLocale(ext.getAttributeValue('Language')) />
+					</cfif>
+				</cfif>
+				
+				<!--- After Success Event --->
+				<cfset observer.afterSuccess(variables.transport, arguments.user) />
+			<cfelse>
+				<!--- After Fail Event --->
+				<cfset observer.afterFail(variables.transport, arguments.user, 'User does not exist in system') />
+				
+				<cfthrow type="validation" message="The OpenID identifier provided does not exist as a current user" detail="Could not find the #verified# identifier as a current user">
 			</cfif>
-			
-			<!--- After Success Event --->
-			<cfset observer.afterSuccess(variables.transport, arguments.user) />
-		<cfelse>
-			<!--- After Fail Event --->
-			<cfset observer.afterFail(variables.transport, arguments.user) />
 		</cfif>
 		
 		<!--- After Verify Event --->
