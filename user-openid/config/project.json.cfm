@@ -15,7 +15,7 @@
 	"key": "user-openid",
 	"plugin": "User - OpenID",
 	"prerequisites": {
-		"algid": "0.1.1",
+		"algid": "0.1.3",
 		"user": "0.1.1"
 	},
 	"requestSingletons": {
