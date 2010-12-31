@@ -3,7 +3,7 @@
 <!--- Include minified files for production --->
 <cfset midfix = (transport.theApplication.managers.singleton.getApplication().isProduction() ? '-min' : '') />
 
-<cfset template.addStyles('../plugins/user-openid/style/styles#midfix#.css') />
+<cfset template.addStyles(transport.theRequest.webRoot & 'plugins/user-openid/style/styles#midfix#.css') />
 
 <!--- Construct URL from settings --->
 <cfset urlBase = 'http#(transport.theCgi.https eq 'on' ? 's' : '')#://#transport.theCgi.http_host##transport.theApplication.managers.singleton.getApplication().getPath()##transport.theApplication.managers.plugin.getAdmin().getPath()#?' />
