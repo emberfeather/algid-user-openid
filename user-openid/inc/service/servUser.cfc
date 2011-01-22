@@ -174,7 +174,7 @@
 		
 		<cfif isNull(verified)>
 			<!--- After Fail Event --->
-			<cfset observer.afterFail(variables.transport, arguments.user, verification.getStatusMsg()) />
+			<cfset observer.afterFail(variables.transport, arguments.user, '', verification.getStatusMsg()) />
 			
 			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#">
 		<cfelse>
@@ -228,9 +228,9 @@
 				<cfset observer.afterSuccess(variables.transport, arguments.user) />
 			<cfelse>
 				<!--- After Fail Event --->
-				<cfset observer.afterFail(variables.transport, arguments.user, 'User does not exist in system') />
+				<cfset observer.afterFail(variables.transport, arguments.user, verified, 'User does not exist in system') />
 				
-				<cfthrow type="validation" message="The OpenID identifier provided does not exist as a current user" detail="Could not find the #verified# identifier as a current user">
+				<cfthrow type="validation" message="The OpenID identifier provided does not exist as a current user" detail="Could not find the #verified.toString()# identifier as a current user">
 			</cfif>
 		</cfif>
 		

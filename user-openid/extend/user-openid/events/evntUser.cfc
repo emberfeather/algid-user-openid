@@ -1,13 +1,13 @@
 <cfcomponent extends="algid.inc.resource.base.event" output="false">
 <cfscript>
-	public void function afterFail( required struct transport, required component user, required string message ) {
+	public void function afterFail( required struct transport, required component user, required string provider, required string message ) {
 		var eventLog = '';
 		
 		// Get the event log from the transport
 		eventLog = arguments.transport.theApplication.managers.singleton.getEventLog();
 		
 		// Log the failed login event
-		eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ''' & arguments.user.getIdentity() & ''' (' & message & ') on ' & arguments.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID());
+		eventLog.logEvent('user-openid', 'userFailed', 'The OpenID login failed for ''' & arguments.provider & ''' (' & message & ') on ' & arguments.transport.theCgi.server_name & '.', arguments.user.getUserID(), arguments.user.getUserID());
 	}
 	
 	public void function afterCreate( required struct transport, required component user ) {
