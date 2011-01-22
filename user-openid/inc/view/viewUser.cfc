@@ -26,6 +26,7 @@
 				<div class="providers">
 					<img src="#iconDir#/google_#iconSize#.png" title="Google" alt="Google" class="provider google" data-provider="google" />
 					<img src="#iconDir#/yahoo_#iconSize#.png" title="Yahoo!" alt="Yahoo!" class="provider yahoo" data-provider="yahoo" />
+					<img src="#iconDir#/aim_#iconSize#.png" title="AOL" alt="AOL" class="provider aol" data-provider="aol" />
 					<img src="#iconDir#/openid_#iconSize#.png" title="OpenID" alt="OpenID" class="provider openid" data-provider="openID" />
 					
 					<div class="element identity">

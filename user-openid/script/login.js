@@ -18,6 +18,11 @@
 			input: $('#identity')
 		};
 		
+		providers.aol = {
+			identity: 'https://openid.aol.com',
+			icon: $('.provider.aol', elements.providers)
+		};
+		
 		providers.google = {
 			identity: 'https://www.google.com/accounts/o8/id',
 			icon: $('.provider.google', elements.providers)
