@@ -40,6 +40,11 @@
 		elements.submit.parents('form').submit(function(){
 			isSubmitted = true;
 		});
+		
+		// Check if the last time used was an OpenID url
+		if($.cookie('user-openid.lastUsed') === 'openID') {
+			$('.provider.openid', elements.providers).click();
+		}
 	});
 	
 	function handleProviderChange() {
@@ -77,5 +82,8 @@
 			
 			elements.submit.fadeIn('fast');
 		}
+		
+		// Add a cookie of what openID was used last
+		$.cookie('user-openid.lastUsed', provider, { expire: 'never', path: '/' })
 	}
 }(jQuery));
