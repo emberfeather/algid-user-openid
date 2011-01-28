@@ -24,7 +24,7 @@
 		};
 		
 		providers.google = {
-			identity: 'https://www.google.com/accounts/o8/id',
+			identity: 'https://www.google.com/accounts/o8/id?source=profiles',
 			icon: $('.provider.google', elements.providers)
 		};
 		

@@ -17,7 +17,23 @@
 <cfelseif theUrl.search('openid.ns') neq ''>
 	<cfset responseUrl = urlBase & cgi.query_string />
 	
-	<cfset servUser.verifyUser(transport.theSession.managers.singleton.getUser(), responseUrl) />
+	<cftry>
+		<cfset servUser.verifyUser(transport.theSession.managers.singleton.getUser(), responseUrl) />
+		
+		<cfcatch type="validation">
+			<cfif cfcatch.errorCode neq 'notValidated'>
+				<cfrethrow />
+			</cfif>
+			
+			<cfif structKeyExists(url, 'openid.claimed_id')>
+				<cfset form.identity = url.openid.claimed_id />
+				
+				<cfset returnUrl = urlBase & '_base=/account/login' />
+				
+				<cflocation url="#servUser.discoverUser(form, returnUrl)#" addtoken="false">
+			</cfif>
+		</cfcatch>
+	</cftry>
 	
 	<cfif structKeyExists(transport.theSession, 'redirect')>
 		<cflocation url="#transport.theSession.redirect#" addtoken="false" />

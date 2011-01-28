@@ -176,7 +176,7 @@
 			<!--- After Fail Event --->
 			<cfset observer.afterFail(variables.transport, arguments.user, '', verification.getStatusMsg()) />
 			
-			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#">
+			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#" errorcode="notValidated">
 		<cfelse>
 			<!--- TODO Update the user object with the information from the provider and the database --->
 			
