@@ -174,9 +174,9 @@
 		
 		<cfif isNull(verified)>
 			<!--- After Fail Event --->
-			<cfset observer.afterFail(variables.transport, arguments.user, verification.getStatusMsg()) />
+			<cfset observer.afterFail(variables.transport, arguments.user, '', verification.getStatusMsg()) />
 			
-			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#">
+			<cfthrow type="validation" message="OpenID verification failed" detail="#verification.getStatusMsg()#" errorcode="notValidated">
 		<cfelse>
 			<!--- TODO Update the user object with the information from the provider and the database --->
 			
@@ -188,7 +188,7 @@
 			</cfquery>
 			
 			<cfif results.recordCount>
-				<cfset arguments.user.setUserID(results.userID) />
+				<cfset arguments.user.setUserID(results.userID.toString()) />
 				<cfset arguments.user.setIdentity(verified.toString()) />
 				
 				<cfset axMessage = createObject('java', 'org.openid4java.message.ax.AxMessage', '/plugins/user-openid/inc/lib/openid4java.jar') />
@@ -228,9 +228,9 @@
 				<cfset observer.afterSuccess(variables.transport, arguments.user) />
 			<cfelse>
 				<!--- After Fail Event --->
-				<cfset observer.afterFail(variables.transport, arguments.user, 'User does not exist in system') />
+				<cfset observer.afterFail(variables.transport, arguments.user, verified, 'User does not exist in system') />
 				
-				<cfthrow type="validation" message="The OpenID identifier provided does not exist as a current user" detail="Could not find the #verified# identifier as a current user">
+				<cfthrow type="validation" message="The OpenID identifier provided does not exist as a current user" detail="Could not find the #verified.toString()# identifier as a current user">
 			</cfif>
 		</cfif>
 		

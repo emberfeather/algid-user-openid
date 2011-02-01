@@ -4,6 +4,8 @@
 		
 		<cfset var html = '' />
 		<cfset var i18n = '' />
+		<cfset var iconDir = '' />
+		<cfset var iconSize = 32 />
 		<cfset var theForm = '' />
 		<cfset var theURL = '' />
 		
@@ -17,15 +19,31 @@
 		<!--- Add the resource bundle for the view --->
 		<cfset theForm.addBundle('plugins/user-openid/i18n/inc/view', 'viewUser') />
 		
-		<!--- Identifier --->
-		<cfset theForm.addElement('text', {
-				id = "identity",
-				name = "identity",
-				label = "identity",
-				value = ( structKeyExists(arguments.request, 'identity') ? arguments.request.identity : '' )
-			}) />
+		<cfset iconDir = variables.transport.theRequest.webRoot & 'plugins/user-openid/img/icon' />
 		
-		<cfreturn theForm.toHTML(theURL.getLogin()) />
+		<cfsavecontent variable="html">
+			<cfoutput>
+				<div class="providers">
+					<img src="#iconDir#/google_#iconSize#.png" title="Google" alt="Google" class="provider google" data-provider="google" />
+					<img src="#iconDir#/yahoo_#iconSize#.png" title="Yahoo!" alt="Yahoo!" class="provider yahoo" data-provider="yahoo" />
+					<img src="#iconDir#/aim_#iconSize#.png" title="AOL" alt="AOL" class="provider aol" data-provider="aol" />
+					<img src="#iconDir#/openid_#iconSize#.png" title="OpenID" alt="OpenID" class="provider openid" data-provider="openID" />
+					
+					<div class="element identity">
+						<input id="identity" type="text" name="identity" value="#( structKeyExists(arguments.request, 'identity') ? arguments.request.identity : '' )#">
+					</div>
+				</div>
+			</cfoutput>
+		</cfsavecontent>
+		
+		<!--- OpenID Providers --->
+		<cfset theForm.addElement('custom', {
+			name = "providers",
+			label = "providers",
+			value = html
+		}) />
+		
+		<cfreturn theForm.toHTML(theURL.getLogin(), { submit: 'Login' }) />
 	</cffunction>
 	
 	<cffunction name="datagrid" access="public" returntype="string" output="false">
