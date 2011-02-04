@@ -23,4 +23,12 @@
 		
 		<cfreturn this.getIdentity() />
 	</cffunction>
+	
+	<cffunction name="setIdentity" access="public" returntype="void" output="false">
+		<cfargument name="value" type="string" required="true" />
+		
+		<cfset arguments.value = lcase(arguments.value) />
+		
+		<cfset super.setIdentity(argumentCollection = arguments) />
+	</cffunction>
 </cfcomponent>
