@@ -86,7 +86,7 @@
 			</cfif>
 			
 			<cfif structKeyExists(arguments.filter, 'identifier')>
-				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.user#" />
+				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(arguments.filter.user)#" />
 			</cfif>
 			
 			ORDER BY "identifier" ASC
@@ -183,7 +183,7 @@
 			<cfquery name="results" datasource="#variables.datasource.name#">
 				SELECT "userID"
 				FROM "#variables.datasource.prefix#user"."user"
-				WHERE "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#verified#" />
+				WHERE "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(verified)#" />
 					AND "archivedOn" IS NULL
 			</cfquery>
 			
