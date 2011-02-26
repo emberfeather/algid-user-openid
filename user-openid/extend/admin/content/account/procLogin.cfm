@@ -18,7 +18,7 @@
 	<cfset responseUrl = urlBase & cgi.query_string />
 	
 	<cftry>
-		<cfset servUser.verifyUser(transport.theSession.managers.singleton.getUser(), responseUrl) />
+		<cfset servUser.verifyUser(responseUrl) />
 		
 		<cfcatch type="validation">
 			<cfif cfcatch.errorCode neq 'notValidated'>

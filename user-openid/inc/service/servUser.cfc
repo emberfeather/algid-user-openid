@@ -96,7 +96,6 @@
 	</cffunction>
 	
 	<cffunction name="setUser" access="public" returntype="void" output="false">
-		<cfargument name="currUser" type="component" required="true" />
 		<cfargument name="user" type="component" required="true" />
 		
 		<cfset var eventLog = '' />
@@ -109,7 +108,7 @@
 		<!--- TODO Check Permissions --->
 		
 		<!--- Before Save Event --->
-		<cfset observer.beforeSave(variables.transport, arguments.currUser, arguments.content) />
+		<cfset observer.beforeSave(variables.transport, arguments.content) />
 		
 		<cfif arguments.user.getUserID() eq ''>
 			<!--- Create the new ID --->
@@ -127,14 +126,14 @@
 			</cfquery>
 			
 			<!--- After Create Event --->
-			<cfset observer.afterCreate(variables.transport, arguments.currUser, arguments.content) />
+			<cfset observer.afterCreate(variables.transport, arguments.content) />
 		<cfelse>
 			<!--- After Update Event --->
-			<cfset observer.afterUpdate(variables.transport, arguments.currUser, arguments.content) />
+			<cfset observer.afterUpdate(variables.transport, arguments.content) />
 		</cfif>
 		
 		<!--- After Save Event --->
-		<cfset observer.afterSave(variables.transport, arguments.currUser, arguments.content) />
+		<cfset observer.afterSave(variables.transport, arguments.content) />
 	</cffunction>
 	
 	<cffunction name="verifyUser" access="public" returntype="void" output="false">
