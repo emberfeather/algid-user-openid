@@ -105,10 +105,10 @@
 		<!--- Get the event observer --->
 		<cfset observer = getPluginObserver('user-openid', 'user') />
 		
-		<!--- TODO Check Permissions --->
+		<cfset validate__model(arguments.user) />
 		
 		<!--- Before Save Event --->
-		<cfset observer.beforeSave(variables.transport, arguments.content) />
+		<cfset observer.beforeSave(variables.transport, arguments.user) />
 		
 		<cfif arguments.user.getUserID() eq ''>
 			<!--- Create the new ID --->
@@ -126,14 +126,14 @@
 			</cfquery>
 			
 			<!--- After Create Event --->
-			<cfset observer.afterCreate(variables.transport, arguments.content) />
+			<cfset observer.afterCreate(variables.transport, arguments.user) />
 		<cfelse>
 			<!--- After Update Event --->
-			<cfset observer.afterUpdate(variables.transport, arguments.content) />
+			<cfset observer.afterUpdate(variables.transport, arguments.user) />
 		</cfif>
 		
 		<!--- After Save Event --->
-		<cfset observer.afterSave(variables.transport, arguments.content) />
+		<cfset observer.afterSave(variables.transport, arguments.user) />
 	</cffunction>
 	
 	<cffunction name="verifyUser" access="public" returntype="void" output="false">
