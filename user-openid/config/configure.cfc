@@ -26,6 +26,17 @@
 					<cfthrow message="Database Type Not Supported" detail="The #variables.datasource.type# database type is not currently supported" />
 				</cfdefaultcase>
 			</cfswitch>
+		<cfelseif versions.compareVersions(arguments.installedVersion, '0.1.4') lt 0>
+			<!--- Change the Database --->
+			<cfswitch expression="#variables.datasource.type#">
+				<cfcase value="PostgreSQL">
+					<cfset postgreSQL0_1_4() />
+				</cfcase>
+				<cfdefaultcase>
+					<!--- TODO Remove this thow when a later version supports more database types  --->
+					<cfthrow message="Database Type Not Supported" detail="The #variables.datasource.type# database type is not currently supported" />
+				</cfdefaultcase>
+			</cfswitch>
 		</cfif>
 	</cffunction>
 	
@@ -44,6 +55,46 @@
 		
 		<cfquery datasource="#variables.datasource.name#">
 			ALTER TABLE "#variables.datasource.prefix#user"."user" ADD UNIQUE (identifier);
+		</cfquery>
+	</cffunction>
+	
+	<!---
+		Configures the database for v0.1.4
+	--->
+	<cffunction name="postgreSQL0_1_4" access="public" returntype="void" output="false">
+		<!---
+			TABLES
+		--->
+		
+		<!--- Identifier Table --->
+		<cfquery datasource="#variables.datasource.name#">
+			CREATE TABLE "#variables.datasource.prefix#user".identifier
+			(
+				"identifierID" uuid NOT NULL,
+				"userID" uuid NOT NULL,
+				identifier character varying(500) NOT NULL,
+				CONSTRAINT identifier_pkey PRIMARY KEY ("identifierID"),
+				CONSTRAINT "identifier_userID_fkey" FOREIGN KEY ("userID")
+					REFERENCES "#variables.datasource.prefix#user"."user" ("userID") MATCH SIMPLE
+					ON UPDATE CASCADE ON DELETE CASCADE,
+				CONSTRAINT identifier_identifier_key UNIQUE (identifier)
+			)
+			WITH (
+				OIDS=FALSE
+			);
+		</cfquery>
+		
+		<cfquery datasource="#variables.datasource.name#">
+			ALTER TABLE "#variables.datasource.prefix#user".identifier OWNER TO #variables.datasource.owner#;
+		</cfquery>
+		
+		<cfquery datasource="#variables.datasource.name#">
+			COMMENT ON TABLE "#variables.datasource.prefix#user"."identifier" IS 'User OpenID Identifiers';
+		</cfquery>
+		
+		<!--- Remove original column --->
+		<cfquery datasource="#variables.datasource.name#">
+			ALTER TABLE "#variables.datasource.prefix#user"."user" DROP COLUMN identifier;
 		</cfquery>
 	</cffunction>
 </cfcomponent>

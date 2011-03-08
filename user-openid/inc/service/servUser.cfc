@@ -46,7 +46,9 @@
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
 			SELECT "userID", "identifier"
-			FROM "#variables.datasource.prefix#user"."user"
+			FROM "#variables.datasource.prefix#user"."user" u
+			JOIN "#variables.datasource.prefix#user"."identifier" i
+				ON u."userID" = i."userID"
 			WHERE "userID" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userID#" null="#arguments.userID eq ''#" />::uuid
 		</cfquery>
 		
@@ -68,28 +70,30 @@
 		<cfset var useFuzzySearch = variables.transport.theApplication.managers.singleton.getApplication().getUseFuzzySearch() />
 		
 		<cfquery name="results" datasource="#variables.datasource.name#">
-			SELECT "userID", "fullname", "identifier"
-			FROM "#variables.datasource.prefix#user"."user"
+			SELECT u."userID", u."fullname", i."identifier"
+			FROM "#variables.datasource.prefix#user"."user" u
+			JOIN "#variables.datasource.prefix#user"."identifier" i
+				ON u."userID" = i."userID"
 			WHERE 1=1
 			
 			<cfif structKeyExists(arguments.filter, 'search') and arguments.filter.search neq ''>
 				AND (
-					"fullname" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
-					OR "identifier" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
-					OR "username" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					u."fullname" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					OR i."identifier" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
+					OR u."username" LIKE <cfqueryparam cfsqltype="cf_sql_varchar" value="%#arguments.filter.search#%" />
 					
 					<cfif useFuzzySearch>
-						OR dmetaphone("fullname") = dmetaphone(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
-						OR dmetaphone_alt("fullname") = dmetaphone_alt(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
+						OR dmetaphone(u."fullname") = dmetaphone(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
+						OR dmetaphone_alt(u."fullname") = dmetaphone_alt(<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.filter.search#" />)
 					</cfif>
 				)
 			</cfif>
 			
 			<cfif structKeyExists(arguments.filter, 'identifier')>
-				and "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(arguments.filter.user)#" />
+				and i."identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(arguments.filter.user)#" />
 			</cfif>
 			
-			ORDER BY "identifier" ASC
+			ORDER BY i."identifier" ASC
 		</cfquery>
 		
 		<cfreturn results />
@@ -107,32 +111,25 @@
 		
 		<cfset validate__model(arguments.user) />
 		
-		<!--- Before Save Event --->
 		<cfset observer.beforeSave(variables.transport, arguments.user) />
 		
 		<cfif arguments.user.getUserID() eq ''>
 			<!--- Create the new ID --->
 			<cfset arguments.user.setUserID( createUUID() ) />
 			
-			<cfquery datasource="#variables.datasource.name#" result="results">
-				INSERT INTO "#variables.datasource.prefix#user"."user"
-				(
-					"userID",
-					"identifier"
-				) VALUES (
-					<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getUserID()#" />::uuid,
-					<cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.user.getIdentifier()#" />
-				)
-			</cfquery>
+			<cfset observer.beforeCreate(variables.transport, arguments.user) />
 			
-			<!--- After Create Event --->
+			<!--- TODO Save the openID identifiers --->
+			
 			<cfset observer.afterCreate(variables.transport, arguments.user) />
 		<cfelse>
-			<!--- After Update Event --->
+			<cfset observer.beforeUpdate(variables.transport, arguments.user) />
+			
+			<!--- TODO Sync the openID identifiers --->
+			
 			<cfset observer.afterUpdate(variables.transport, arguments.user) />
 		</cfif>
 		
-		<!--- After Save Event --->
 		<cfset observer.afterSave(variables.transport, arguments.user) />
 	</cffunction>
 	
@@ -180,10 +177,12 @@
 			<!--- TODO Update the user object with the information from the provider and the database --->
 			
 			<cfquery name="results" datasource="#variables.datasource.name#">
-				SELECT "userID"
-				FROM "#variables.datasource.prefix#user"."user"
-				WHERE "identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(verified)#" />
-					AND "archivedOn" IS NULL
+				SELECT u."userID"
+				FROM "#variables.datasource.prefix#user"."user" u
+				JOIN "#variables.datasource.prefix#user"."identifier" i
+					ON u."userID" = i."userID"
+				WHERE i."identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(verified)#" />
+					AND u."archivedOn" IS NULL
 			</cfquery>
 			
 			<cfif results.recordCount>
