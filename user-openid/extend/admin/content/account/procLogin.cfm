@@ -45,3 +45,11 @@
 	
 	<cfset theUrl.redirectRedirect() />
 </cfif>
+
+<!--- If logged in send to main page --->
+<cfif transport.theSession.managers.singleton.getUser().isLoggedIn()>
+	<cfset theUrl.cleanRedirect() />
+	<cfset theUrl.setRedirect('_base', '/index') />
+	
+	<cfset theUrl.redirectRedirect() />
+</cfif>
