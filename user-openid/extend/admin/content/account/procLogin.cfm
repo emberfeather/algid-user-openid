@@ -7,7 +7,7 @@
 <cfset template.addScripts(transport.theRequest.webRoot & 'plugins/user-openid/script/login#midfix#.js') />
 
 <!--- Construct URL from settings --->
-<cfset urlBase = 'http#(transport.theCgi.https eq 'on' ? 's' : '')#://#transport.theCgi.http_host##transport.theApplication.managers.singleton.getApplication().getPath()##transport.theApplication.managers.plugin.getAdmin().getPath()#?' />
+<cfset urlBase = 'http#(transport.theCgi.server_port_secure eq true ? 's' : '')#://#transport.theCgi.http_host##transport.theApplication.managers.singleton.getApplication().getPath()##transport.theApplication.managers.plugin.getAdmin().getPath()#?' />
 
 <!--- Check for form submission --->
 <cfif transport.theCgi.request_method eq 'POST'>
