@@ -11,7 +11,7 @@
 		
 		<cfset i18n = variables.transport.theApplication.managers.singleton.getI18N() />
 		<cfset theURL = variables.transport.theRequest.managers.singleton.getUrl() />
-		<cfset theForm = variables.transport.theApplication.factories.transient.getFormStandard('login', i18n) />
+		<cfset theForm = variables.transport.theApplication.factories.transient.getForm('login', i18n) />
 		
 		<cfset theUrl.cleanLogin() />
 		<cfset theUrl.setLogin('_base', '/account/login') />
