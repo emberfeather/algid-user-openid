@@ -215,10 +215,16 @@
 					</cfif>
 					
 					<cfif ext.getCount('Language')>
-						<cfset arguments.user.setLanguage(ext.getAttributeValue('Language')) />
+						<cfset local.locale = ext.getAttributeValue('Language') />
 						
-						<!--- Store the language in the session --->
-						<cfset transport.theSession.managers.singleton.getSession().setLocale(ext.getAttributeValue('Language')) />
+						<!--- If its not in the available locales use the default --->
+						<cfif not listFindNoCase( arrayToList(variables.transport.theApplication.managers.singleton.getApplication().getI18n().locales), local.locale )>
+							<cfset locale = variables.transport.theApplication.managers.singleton.getApplication().getI18n().default />
+						</cfif>
+						
+						<!--- Store the locale --->
+						<cfset arguments.user.setLanguage(local.locale) />
+						<cfset variables.transport.theSession.managers.singleton.getSession().setLocale(local.locale) />
 					</cfif>
 				</cfif>
 				
