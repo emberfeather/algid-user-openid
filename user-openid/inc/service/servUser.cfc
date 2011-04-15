@@ -219,7 +219,7 @@
 						
 						<!--- If its not in the available locales use the default --->
 						<cfif not listFindNoCase( arrayToList(variables.transport.theApplication.managers.singleton.getApplication().getI18n().locales), local.locale )>
-							<cfset locale = variables.transport.theApplication.managers.singleton.getApplication().getI18n().default />
+							<cfset local.locale = variables.transport.theApplication.managers.singleton.getApplication().getI18n().default />
 						</cfif>
 						
 						<!--- Store the locale --->
