@@ -109,6 +109,7 @@
 		<!--- Get the event observer --->
 		<cfset observer = getPluginObserver('user-openid', 'user') />
 		
+		<cfset scrub__model(arguments.user) />
 		<cfset validate__model(arguments.user) />
 		
 		<cfset observer.beforeSave(variables.transport, arguments.user) />
