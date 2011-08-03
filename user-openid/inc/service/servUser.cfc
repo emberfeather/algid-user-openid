@@ -180,7 +180,7 @@
 			<cfquery name="results" datasource="#variables.datasource.name#">
 				SELECT u."userID", bru."roleID"
 				FROM "#variables.datasource.prefix#user"."user" u
-				JOIN "#variables.datasource.prefix#user"."bRole2User" bru
+				LEFT JOIN "#variables.datasource.prefix#user"."bRole2User" bru
 					ON u."userID" = bru."userID"
 				JOIN "#variables.datasource.prefix#user"."identifier" i
 					ON u."userID" = i."userID"
@@ -233,7 +233,7 @@
 				
 				<!--- Add the roles to the user --->
 				<cfloop query="results">
-					<cfset arguments.user.addRole(results.roleID) />
+					<cfset arguments.user.addRoles(results.roleID.toString()) />
 				</cfloop>
 				
 				<!--- After Success Event --->
