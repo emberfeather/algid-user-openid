@@ -109,6 +109,7 @@
 		<!--- Get the event observer --->
 		<cfset observer = getPluginObserver('user-openid', 'user') />
 		
+		<cfset scrub__model(arguments.user) />
 		<cfset validate__model(arguments.user) />
 		
 		<cfset observer.beforeSave(variables.transport, arguments.user) />
@@ -177,12 +178,14 @@
 			<!--- TODO Update the user object with the information from the provider and the database --->
 			
 			<cfquery name="results" datasource="#variables.datasource.name#">
-				SELECT u."userID"
+				SELECT u."userID", bru."roleID"
 				FROM "#variables.datasource.prefix#user"."user" u
+				LEFT JOIN "#variables.datasource.prefix#user"."bRole2User" bru
+					ON u."userID" = bru."userID"
 				JOIN "#variables.datasource.prefix#user"."identifier" i
 					ON u."userID" = i."userID"
-				WHERE i."identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(verified)#" />
-					AND u."archivedOn" IS NULL
+					AND i."identifier" = <cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(verified)#" />
+				WHERE u."archivedOn" IS NULL
 			</cfquery>
 			
 			<cfif results.recordCount>
@@ -227,6 +230,11 @@
 						<cfset variables.transport.theSession.managers.singleton.getSession().setLocale(local.locale) />
 					</cfif>
 				</cfif>
+				
+				<!--- Add the roles to the user --->
+				<cfloop query="results">
+					<cfset arguments.user.addRoles(results.roleID.toString()) />
+				</cfloop>
 				
 				<!--- After Success Event --->
 				<cfset observer.afterSuccess(variables.transport, arguments.user) />
