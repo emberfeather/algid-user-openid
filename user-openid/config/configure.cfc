@@ -26,7 +26,10 @@
 					<cfthrow message="Database Type Not Supported" detail="The #variables.datasource.type# database type is not currently supported" />
 				</cfdefaultcase>
 			</cfswitch>
-		<cfelseif versions.compareVersions(arguments.installedVersion, '0.1.4') lt 0>
+		</cfif>
+		
+		<!--- => 0.1.4 --->
+		<cfif versions.compareVersions(arguments.installedVersion, '0.1.4') lt 0>
 			<!--- Change the Database --->
 			<cfswitch expression="#variables.datasource.type#">
 				<cfcase value="PostgreSQL">
