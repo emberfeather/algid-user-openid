@@ -1,7 +1,15 @@
 /**
  * Enhancements to the OpenID login process
  */
-(function($){
+(function(factory) {
+	if (typeof define === 'function' && define.amd) {
+		// AMD Registration
+		define('plugins/user-openid/script/login', ['jquery'], factory);
+	} else {
+		// Browser globals
+		factory(jQuery);
+	}
+}(function($){
 	var elements;
 	var identity;
 	var isSubmitted = false;
@@ -86,4 +94,4 @@
 		// Add a cookie of what openID was used last
 		$.cookie('user-openid.lastUsed', provider, { expire: 'never', path: '/' })
 	}
-}(jQuery));
+}));
