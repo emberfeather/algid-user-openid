@@ -1,8 +1,8 @@
 {
-	"archive": "http://github.com/emberfeather/algid-user-openid/tarball/0.1.7",
+	"archive": "http://github.com/emberfeather/algid-user-openid/tarball/0.1.8",
 	"key": "user-openid",
 	"releaseNotes": "http://github.com/emberfeather/algid-user-openid/wiki/Release-Notes",
 	"title": "User - OpenID",
 	"URL": "http://github.com/emberfeather/algid-user-openid",
-	"version": "0.1.7"
+	"version": "0.1.8"
 }
